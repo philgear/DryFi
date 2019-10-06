@@ -1,0 +1,23 @@
+.card-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+.dry-time-card {
+    width: 49%;
+    padding: 3%;
+}
+.dry-time-card-left {
+    border-right: 1px solid black;
+}
+.time-to-dry {
+    background-color: white;
+    height: 200px;
+    width: 200px;
+    display: flex; 
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    box-shadow: 1px 2px 2px black;
+}

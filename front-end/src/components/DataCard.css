@@ -1,0 +1,22 @@
+.card {
+    width: 30%;
+    box-shadow: 3px 2px 4.5px #00000094;
+    height: 250px;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin: 2% 1%;
+    background-color: white;
+}
+.card-metric {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 45px;
+    padding: 5%;
+}
+.card-name {
+    display: flex;
+    justify-content: center;
+}

@@ -1,10 +1,13 @@
 import React from 'react'
 import './Header.css'
+import Clock from './Clock'
 
 export default function Header() {
+    const user = "User"
     return (
         <div className="app-header">
-            Hackathon 2019
+            Hello {user} 
+            <Clock />
         </div>
     )
 }
