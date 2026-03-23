@@ -1,0 +1,844 @@
+<!-- ╔═══════════════════════════════════════════════════════╗
+     ║  DryFi Observer — Paul Klee / Masonic Waterfall      ║
+     ║  Jewel-toned mosaic tiles, cascading data flow        ║
+     ╚═══════════════════════════════════════════════════════╝ -->
+
+<!-- ── MASONIC HEADER BANNER ──────────────────────────────── -->
+<header class="masthead">
+  <div style="max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:2rem;flex-wrap:wrap;">
+
+    <div>
+      <p style="font-family:var(--font-mono);font-size:.55rem;letter-spacing:.28em;text-transform:uppercase;opacity:.55;margin-bottom:.4rem;">
+        ◈ SYSTEM · ENVIRONMENTAL-OBSERVER · v2.1 ◈
+      </p>
+      <h1 style="font-family:var(--font-serif);font-size:2.8rem;font-weight:700;color:var(--klee-linen-dk);line-height:1;margin:0;">
+        DryFi Observer
+      </h1>
+      <p style="font-family:var(--font-mono);font-size:.65rem;letter-spacing:.1em;opacity:.45;margin-top:.5rem;">
+        45.500° N · 122.640° W · Portland, Oregon
+      </p>
+    </div>
+
+    <!-- Solar times — compact row in masthead -->
+    <div style="display:flex;gap:2rem;font-family:var(--font-mono);font-size:.75rem;">
+      <div style="text-align:center;">
+        <div style="font-size:.5rem;letter-spacing:.18em;text-transform:uppercase;opacity:.5;margin-bottom:.2rem;">↑ Rise</div>
+        <div style="font-weight:600;color:var(--klee-linen-dk);">{{ fmtTime(solarService.solarDay().sunrise) }}</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:.5rem;letter-spacing:.18em;text-transform:uppercase;opacity:.5;margin-bottom:.2rem;">⊙ Noon</div>
+        <div style="font-weight:700;font-size:.9rem;color:var(--klee-gold);">{{ fmtTime(solarService.solarDay().solarNoon) }}</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:.5rem;letter-spacing:.18em;text-transform:uppercase;opacity:.5;margin-bottom:.2rem;">↓ Set</div>
+        <div style="font-weight:600;color:var(--klee-linen-dk);">{{ fmtTime(solarService.solarDay().sunset) }}</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:.5rem;letter-spacing:.18em;text-transform:uppercase;opacity:.5;margin-bottom:.2rem;">Daylight</div>
+        <div style="color:var(--klee-linen-dk);">
+          {{ fmtDaylight(solarService.solarDay().daylightMinutes).h }}<span style="opacity:.5;font-size:.7rem;margin-left:1px;">h</span>
+          {{ fmtDaylight(solarService.solarDay().daylightMinutes).m }}<span style="opacity:.5;font-size:.7rem;margin-left:1px;">m</span>
+        </div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:.5rem;letter-spacing:.18em;text-transform:uppercase;opacity:.5;margin-bottom:.2rem;">Solstice</div>
+        <div style="color:var(--klee-linen-dk);">{{ solarService.solarDay().daysToSolstice }}<span style="opacity:.5;font-size:.7rem;">d</span></div>
+      </div>
+    </div>
+
+    <!-- Live indicator -->
+    <div style="display:flex;align-items:center;gap:.6rem;font-family:var(--font-mono);font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;opacity:.6;">
+      <span class="sig-dot sig-dot--live animate-pulse"></span>
+      Telemetry Active
+    </div>
+  </div>
+</header>
+
+<hr class="masonic-rule">
+
+<!-- ── TELEMETRY ERROR ───────────────────────────────────────── -->
+@if (weatherService.error()) {
+  <div style="background:rgba(248,113,113,.08);border-left:3px solid var(--sig-err);padding:.75rem 1.5rem;font-family:var(--font-mono);font-size:.7rem;display:flex;gap:.75rem;align-items:flex-start;">
+    <span class="sig-dot sig-dot--err" style="margin-top:.15rem;flex-shrink:0;"></span>
+    <code style="color:rgba(248,113,113,.8);word-break:break-all;line-height:1.5;">{{ weatherService.error() }}</code>
+  </div>
+}
+
+<!-- ══════════════════════════════════════════════════════════════
+     MASONIC WATERFALL GRID
+     A CSS grid of jewel tiles that cascade like light through
+     stained glass. Each datum has its own coloured chamber.
+     ══════════════════════════════════════════════════════════════ -->
+<main style="
+  flex-grow: 1;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 3px;
+  display: grid;
+  gap: 3px;
+  grid-template-columns: 1.3fr 1fr;
+  grid-template-rows: auto 1fr 1fr 1fr;
+  grid-template-areas:
+    'globe     globe'
+    'int-temp  ext-temp'
+    'int-temp  ext-hum'
+    'int-temp  wind';
+">
+
+  <!-- ==============================================
+       REUSABLE THERMODYNAMIC ORIGAMI RAIN OVERLAY
+       ============================================== -->
+  <ng-template #rainOverlay>
+    <div style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:0;perspective:800px;"
+         [style.opacity]="0.4 + ((weatherService.current_precip().metric || 0) / 100) * 0.4">
+      @for (drop of [
+        { l: 10, s: 1.2, d: 0,   r: 15 },
+        { l: 25, s: 0.8, d: 2,   r: -10 },
+        { l: 40, s: 1.5, d: 1,   r: -5 },
+        { l: 55, s: 1.0, d: 3,   r: 20 },
+        { l: 70, s: 1.3, d: 1.5, r: 5 },
+        { l: 85, s: 0.9, d: 2.5, r: -15 },
+        { l: 15, s: 1.4, d: 0.5, r: 10 },
+        { l: 50, s: 1.1, d: 0.8, r: 0 },
+        { l: 80, s: 1.2, d: 1.8, r: -20 },
+        { l: 35, s: 0.9, d: 2.2, r: 25 }
+      ]; track drop.l) {
+        <div style="position:absolute; top:-20px;"
+             [style.left.%]="drop.l"
+             [style.transform]="'scale(' + ((weatherService.current_ext_humidity().metric || 50) / 40) * drop.s + ')'">
+          <svg class="origami-drop" viewBox="0 0 10 20"
+               style="width:10px;height:20px;overflow:visible;"
+               [style.--drop-rot.deg]="drop.r"
+               [style.animation-duration.s]="10 - ((weatherService.current_ext_humidity().metric || 50) / 15)"
+               [style.animation-delay.s]="drop.d">
+            <polygon points="5,0 10,12 5,20 0,12" fill="var(--klee-slate-lt)" opacity="0.45"/>
+            <polygon points="5,0 10,12 5,20" fill="var(--canvas)" opacity="0.25"/>
+          </svg>
+        </div>
+      }
+    </div>
+  </ng-template>
+
+  <!-- ==============================================
+       REUSABLE ORIGAMI HEAT OVERLAY
+       ============================================== -->
+  <ng-template #tempOverlay>
+    <div style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:0;perspective:800px;"
+         [style.opacity]="0.6">
+      @for (drop of [
+        { l: 15, s: 1.5, d: 0,   r: 10 },
+        { l: 40, s: 0.8, d: 2,   r: -15 },
+        { l: 65, s: 1.2, d: 1,   r: 5 },
+        { l: 85, s: 1.8, d: 3,   r: 20 },
+        { l: 25, s: 1.0, d: 1.5, r: -5 },
+        { l: 75, s: 1.3, d: 0.5, r: 15 }
+      ]; track drop.l) {
+        <svg class="origami-heat" viewBox="0 0 20 20"
+             style="position:absolute;bottom:-30px;"
+             [style.left.%]="drop.l"
+             [style.width.px]="15 * drop.s" [style.height.px]="15 * drop.s"
+             [style.--heat-rot.deg]="drop.r"
+             [style.animation-duration.s]="15 - ((weatherService.current_ext_temp().metric || 50) / 10)"
+             [style.animation-delay.s]="drop.d">
+          <polygon points="10,0 20,10 10,6 0,10" fill="var(--klee-gold)" opacity="0.45"/>
+        </svg>
+      }
+    </div>
+  </ng-template>
+
+  <!-- ==============================================
+       REUSABLE ORIGAMI WIND OVERLAY
+       ============================================== -->
+  <ng-template #windOverlay>
+    <div style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:0;perspective:800px;"
+         [style.opacity]="0.5">
+      @for (drop of [
+        { t: 15, s: 1.5, d: 0,   r: 5 },
+        { t: 40, s: 0.8, d: 1,   r: -5 },
+        { t: 65, s: 1.2, d: 0.5, r: 2 },
+        { t: 85, s: 1.8, d: 2,   r: -2 },
+        { t: 25, s: 1.0, d: 1.5, r: 0 },
+        { t: 75, s: 1.3, d: 0.8, r: 4 }
+      ]; track drop.t) {
+        <svg class="origami-wind" viewBox="0 0 20 10"
+             style="position:absolute;left:-50px;"
+             [style.top.%]="drop.t"
+             [style.width.px]="20 * drop.s" [style.height.px]="10 * drop.s"
+             [style.--wind-rot.deg]="drop.r"
+             [style.animation-duration.s]="(100 / ((weatherService.current_wind().metric || 5) + 1))"
+             [style.animation-delay.s]="drop.d">
+          <polygon points="0,0 20,5 0,10 5,5" fill="var(--klee-ink-lt)" opacity="0.65"/>
+        </svg>
+      }
+    </div>
+  </ng-template>
+
+  <!-- ==============================================
+       REUSABLE ORIGAMI SOLAR OVERLAY
+       ============================================== -->
+  <ng-template #solarOverlay>
+    <div style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:0;mix-blend-mode:overlay;display:flex;align-items:center;justify-content:center;"
+         [style.opacity]="0.6">
+        <svg class="origami-solar" viewBox="0 0 100 100"
+             style="position:absolute;"
+             [style.width.%]="150" [style.height.%]="150"
+             [style.animation-duration.s]="60"
+             [style.animation-delay.s]="0">
+          <!-- Mathematical concentric stars -->
+          <polygon points="50,0 60,40 100,50 60,60 50,100 40,60 0,50 40,40" fill="none" stroke="var(--canvas)" stroke-width="1" opacity="0.4"/>
+          <circle cx="50" cy="50" r="30" fill="none" stroke="var(--canvas)" stroke-width="0.5" stroke-dasharray="4 2" opacity="0.2"/>
+          <polygon points="50,15 65,35 85,50 65,65 50,85 35,65 15,50 35,35" fill="none" stroke="var(--canvas)" stroke-width="0.5" opacity="0.3"/>
+        </svg>
+    </div>
+  </ng-template>
+
+  <!-- ==============================================
+       REUSABLE ORIGAMI VAPOR OVERLAY
+       ============================================== -->
+  <ng-template #vaporOverlay>
+    <div style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:0;perspective:800px;"
+         [style.opacity]="0.6">
+      @for (cloud of [
+        { r: -10, b: -20, s: 2.0, d: 0 },
+        { r: 20,  b: -10, s: 2.8, d: 3 },
+        { r: 5,   b: 10,  s: 1.5, d: 1.5 },
+        { r: -30, b: 0,   s: 2.2, d: 4.5 },
+        { r: 40,  b: -30, s: 3.5, d: 2 },
+        { r: 15,  b: -25, s: 1.8, d: 5 }
+      ]; track cloud.r) {
+        <svg class="origami-vapor" viewBox="0 0 40 30"
+             style="position:absolute;"
+             [style.right.px]="cloud.r" [style.bottom.px]="cloud.b"
+             [style.width.px]="40 * cloud.s" [style.height.px]="30 * cloud.s"
+             [style.animation-duration.s]="15 - ((weatherService.current_rm_humidity().metric || 50) / 10)"
+             [style.animation-delay.s]="cloud.d">
+          <polygon points="10,15 20,5 35,10 40,25 20,30 0,25" fill="var(--canvas)" opacity="0.25"/>
+          <polygon points="10,15 20,5 30,20 20,30 0,25" fill="var(--klee-teal-lt)" opacity="0.15"/>
+        </svg>
+      }
+    </div>
+  </ng-template>
+
+  <!-- ==============================================
+       REUSABLE THERMODYNAMIC ORIGAMI OVERLAY
+       ============================================== -->
+  <ng-template #lavaOverlay>
+    <div class="lava-container" [style.opacity]="0.7">
+      
+      <!-- Starmap Technical Grid Overlay -->
+      <svg viewBox="-550 -550 1100 1100" preserveAspectRatio="xMidYMid slice" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:0.35;">
+        <g class="origami-constellation">
+          <path d="M -300,-200 L -150,-200 L -150,-450 L 50,-450 L 50,-300 L 150,-300 L 150,150 L 300,150 L 300,250 L 500,250 L 500,-100 L 200,-100 L 200,-400" 
+                fill="none" stroke="var(--klee-gold)" stroke-width="3" />
+          <path d="M -400,-50 L -400,200 L -500,200 L -500,400 L -250,400 L -250,300 L -100,300 L -100,100 L -50,100 L -50,-200 L -300,-200 L -300,150 L -350,150 L -350,-350 L -450,-350 L -450,-50 L -400,-50" 
+                fill="none" stroke="var(--sig-err)" stroke-width="3" />
+          <!-- Star nodes -->
+          <circle cx="-150" cy="-200" r="8" fill="var(--klee-gold)" />
+          <circle cx="150" cy="150" r="8" fill="var(--klee-gold)" />
+          <circle cx="-250" cy="300" r="8" fill="var(--sig-err)" />
+        </g>
+      </svg>
+      
+      <!-- Scaled Thermodynamic Origami Entities -->
+      @for (blob of [
+        { l: 15, b: -20, d: 0,   s: 18, color: 'var(--klee-gold)' },
+        { l: 30, b: -40, d: 2,   s: 24, color: 'var(--klee-sienna-lt)' },
+        { l: 70, b: -15, d: 5,   s: 16, color: 'var(--klee-amber)' },
+        { l: 16, b: -60, d: 9,   s: 28, color: 'var(--klee-gold-lt)' },
+        { l: 55, b: -10, d: 11,  s: 19, color: 'var(--canvas)' },
+        { l: 80, b: -35, d: 16,  s: 22, color: 'var(--klee-amber-lt)' }
+      ]; track blob.l) {
+        <div style="position:absolute;"
+             [style.left.%]="blob.l"
+             [style.bottom.px]="blob.b"
+             [style.transform]="'scale(' + ((weatherService.current_ext_temp().metric || 60) / 60) + ')'">
+          <svg class="lava-blob" viewBox="0 0 50 50"
+               style="width:80px;height:80px;overflow:visible;"
+               [style.animation]="'lava-rise ' + blob.s + 's infinite ease-in-out'"
+               [style.animation-delay.s]="blob.d">
+            <polygon points="25,0 50,20 35,50 15,50 0,20" [attr.fill]="blob.color" opacity="0.3" />
+            <polygon points="25,10 40,25 30,40 20,40 10,25" [attr.fill]="blob.color" opacity="0.75" />
+            <circle cx="25" cy="27" r="3" fill="var(--canvas)" opacity="0.8"/>
+          </svg>
+        </div>
+      }
+    </div>
+  </ng-template>
+
+  <!-- ▓▓▓ INT.TEMP — LIFESTYLE ▓▓▓ -->
+  <div class="tile tile--indoor" style="grid-area:int-temp;overflow:hidden;position:relative;">
+    <ng-container *ngTemplateOutlet="tempOverlay"></ng-container>
+    <div style="position:relative;z-index:1;display:flex;flex-direction:column;height:100%;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;">
+        <span class="tile-title" style="margin-top:0;">◈ Room<br>Climate</span>
+        <span class="sig-dot sig-dot--live animate-pulse" style="margin-top:.4rem;"></span>
+      </div>
+
+      <div style="margin-top:auto;display:flex;align-items:flex-end;gap:1.5rem;padding-bottom:.4rem;">
+        <!-- Temp -->
+        <div style="display:flex;align-items:flex-end;gap:.2rem;">
+          <span class="tile-value" style="font-size:5.5rem;">
+            {{ weatherService.current_rm_temp().metric !== null ? (weatherService.current_rm_temp().metric | number:'1.0-1') : '—' }}
+          </span>
+          <span class="tile-unit" style="font-size:2rem;margin-bottom:.8rem;color:var(--klee-gold-lt);">{{ weatherService.current_rm_temp().metric_qualifier }}</span>
+        </div>
+        <!-- Hum -->
+        <div style="display:flex;align-items:flex-end;gap:.2rem;margin-bottom:.6rem;">
+          <span class="tile-value" style="font-size:3rem;color:rgba(255,255,255,0.95);">
+            {{ weatherService.current_rm_humidity().metric !== null ? (weatherService.current_rm_humidity().metric | number:'1.0-0') : '—' }}
+          </span>
+          <span class="tile-unit" style="font-size:1.2rem;margin-bottom:.4rem;color:var(--klee-teal-lt);">{{ weatherService.current_rm_humidity().metric_qualifier }}</span>
+        </div>
+      </div>
+      <span class="tile-sub" style="margin-top:.4rem;">Adafruit IO · interior feed</span>
+    </div>
+  </div>
+
+  <!-- ▓▓▓ EXT.TEMP — SIENNA ▓▓▓ -->
+  <div class="tile tile--sienna" style="grid-area:ext-temp;overflow:hidden;position:relative;">
+    <ng-container *ngTemplateOutlet="lavaOverlay"></ng-container>
+    <div style="position:relative;z-index:1;display:flex;flex-direction:column;height:100%;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;">
+      <span class="tile-title" style="margin-top:0;">◈ External<br>Temperature</span>
+      @if (solarService.estimatedSensorBiasF() > 0 && weatherService.current_ext_temp().metric !== null) {
+        <span class="sig-dot sig-dot--warn animate-pulse" style="margin-top:.4rem;"></span>
+      } @else {
+        <span class="sig-dot sig-dot--live animate-pulse" style="margin-top:.4rem;"></span>
+      }
+    </div>
+
+      <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:auto;">
+        
+        <div style="display:flex; flex-direction:column;">
+          @if (solarService.estimatedSensorBiasF() > 0 && weatherService.current_ext_temp().metric !== null) {
+            <p style="font-family:var(--font-mono);font-size:.6rem;opacity:.65;margin-bottom:.5rem;line-height:1.5;">
+              ☀ Sun {{ solarService.sunPosition().elevationDeg | number:'1.0-1' }}° · bias ≈ +{{ solarService.estimatedSensorBiasF() }}°F
+            </p>
+          }
+          <div style="display:flex;align-items:flex-end;gap:.4rem;">
+            <span class="tile-value" style="font-size:3.8rem;">
+              {{ weatherService.current_ext_temp().metric !== null
+                 ? (weatherService.current_ext_temp().metric | number:'1.0-1')
+                 : '—' }}
+            </span>
+            <span class="tile-unit" style="margin-bottom:.45rem;">
+              {{ weatherService.current_ext_temp().metric_qualifier }}
+            </span>
+          </div>
+          @if (weatherService.current_feels_like().metric !== null) {
+            <p style="font-family:var(--font-mono);font-size:.6rem;opacity:.55;margin-top:.3rem;">Feels like <span style="font-weight:600;color:var(--klee-sienna-lt);">{{ weatherService.current_feels_like().metric | number:'1.0-1' }}{{ weatherService.current_feels_like().metric_qualifier }}</span></p>
+          }
+          <span class="tile-sub" style="margin-top:.4rem;">OpenWeatherMap · exterior</span>
+        </div>
+
+        <!-- Dynamic Zermatism/Szukalski Thermometer Totem -->
+        <div style="width:30px;height:75px;position:relative;margin-bottom:0.2rem;display:flex;justify-content:center;align-items:flex-end;">
+          <svg viewBox="0 0 40 80" style="width:100%;height:100%;overflow:visible;filter:drop-shadow(0 4px 6px rgba(0,0,0,0.4));">
+            <defs>
+              <mask id="szuk-temp-mask">
+                <rect x="0" 
+                      [attr.y]="75 - (70 * Math.max(0, Math.min(1, ((weatherService.current_ext_temp().metric || 0) + 20) / 140)))" 
+                      width="40" height="80" fill="white" style="transition: y 1.2s cubic-bezier(0.2, 0.8, 0.2, 1);" />
+              </mask>
+            </defs>
+            
+            <!-- Monolithic Housing Vector -->
+            <polygon points="20,0 28,11 28,53 38,65 20,80 2,65 12,53 12,11" 
+                     fill="rgba(15,23,42,0.8)" stroke="rgba(255,255,255,0.4)" stroke-width="1.2" stroke-linejoin="miter" stroke-miterlimit="10"/>
+            
+            <!-- Empty Interior Shaft -->
+            <polygon points="20,5 24,13 24,55 32,65 20,75 8,65 16,55 16,13" 
+                     fill="rgba(255,255,255,0.08)" />
+
+            <!-- Live Mercury Fill (Masked over the polygon) -->
+            <polygon points="20,5 24,13 24,55 32,65 20,75 8,65 16,55 16,13" 
+                     fill="var(--sig-err)" mask="url(#szuk-temp-mask)" />
+            
+            <!-- Structural Binding Hashes -->
+            <g stroke="rgba(255,255,255,0.5)" stroke-width="1" stroke-linecap="square">
+              <!-- Geometric vertex locks -->
+              <line x1="12" y1="11" x2="28" y2="11" />
+              <line x1="12" y1="53" x2="28" y2="53" />
+              <line x1="2" y1="65" x2="38" y2="65" />
+              <!-- Native Hash Marks (Degrees) -->
+              <line x1="28" y1="20" x2="34" y2="20" />
+              <line x1="28" y1="31" x2="32" y2="31" />
+              <line x1="28" y1="42" x2="34" y2="42" />
+              <!-- Axis Spine (Szukalski center-cut symmetry) -->
+              <line x1="20" y1="65" x2="20" y2="75" stroke="rgba(255,255,255,0.3)" />
+            </g>
+            
+            <!-- Sharp Glass Refraction Highlight -->
+            <polygon points="17,14 19,14 19,52 17,52" fill="rgba(255,255,255,0.35)" />
+            <polygon points="10,64 12,64 19,72 17,72" fill="rgba(255,255,255,0.2)" />
+          </svg>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ▓▓▓ SOLAR TELEMETRY MERGED INTO UNIFIED ATMOSPHERIC ORRERY ABOVE ▓▓▓ -->
+
+  <!-- ▓▓▓ EXT.HUM — SLATE ▓▓▓ -->
+  <div class="tile tile--slate" style="grid-area:ext-hum;">
+    <ng-container *ngTemplateOutlet="rainOverlay"></ng-container>
+    <div style="position:relative;z-index:1;display:flex;flex-direction:column;height:100%;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;">
+        <span class="tile-title" style="margin-top:0;">◈ External<br>Humidity</span>
+        <span class="sig-dot sig-dot--live animate-pulse" style="margin-top:.4rem;"></span>
+      </div>
+      <div style="margin-top:auto;display:flex;align-items:flex-end;gap:.4rem;">
+        <span class="tile-value" style="font-size:3.8rem;">
+          {{ weatherService.current_ext_humidity().metric !== null
+             ? (weatherService.current_ext_humidity().metric | number:'1.0-0')
+             : '—' }}
+        </span>
+        <span class="tile-unit" style="margin-bottom:.45rem;">
+          {{ weatherService.current_ext_humidity().metric_qualifier }}
+        </span>
+      </div>
+      <div style="margin-top:.6rem;font-family:var(--font-mono);font-size:.65rem;color:var(--klee-slate-lt);opacity:.75;">
+        Precipitation Chance: <strong style="color:var(--klee-slate-lt);opacity:1;">
+          {{ weatherService.current_precip().metric !== null ? (weatherService.current_precip().metric | number:'1.0-0') : '—' }}%
+        </strong>
+      </div>
+        <span class="tile-sub" style="margin-top:.4rem;">OpenWeatherMap · exterior</span>
+    </div>
+  </div>
+
+
+
+  <!-- ▓▓▓ GLOBE – ATMOSPHERIC STATION ▓▓▓ -->
+  <div class="tile tile--ink" style="grid-area:globe;min-height:auto;overflow:hidden;position:relative;">
+    <!-- Starmap Layer -->
+    <div class="starmap-container">
+      <div class="starmap-bg starmap-bg-1"></div>
+      <div class="starmap-bg starmap-bg-2"></div>
+      <div class="starmap-bg starmap-bg-3"></div>
+      <div class="starmap">
+        <svg viewBox="-550 -550 1100 1100" style="position:absolute;top:50%;left:50%;width:1100px;height:1100px;overflow:visible;pointer-events:none;transition:transform 1s ease-in-out;"
+             [style.transform]="'translate(-50%, -50%) rotate(' + siderealRotation() + 'deg)'">
+          <g class="astrology-draw">
+            @for (c of constellations; track c.name) {
+              <!-- Graceful Constellation Lines -->
+              <path [attr.d]="c.path" 
+                    fill="none" 
+                    [attr.stroke]="c.color" 
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="draw-path"
+                    [style.animation-delay.s]="c.delay"
+                    [style.animation-duration.s]="c.duration" />
+                    
+              <!-- Astrological Label -->
+              <text [attr.x]="c.textPos.x" [attr.y]="c.textPos.y" 
+                    font-family="var(--font-mono)" font-size="14" font-weight="500"
+                    [attr.fill]="c.color" 
+                    class="constellation-label"
+                    style="letter-spacing:0.2em; text-transform:uppercase; pointer-events:none; transition: transform 1s ease-in-out;"
+                    [style.transform-origin]="c.textPos.x + 'px ' + c.textPos.y + 'px'"
+                    [style.transform]="'rotate(' + (-siderealRotation()) + 'deg)'"
+                    [style.animation-delay.s]="c.delay"
+                    [style.animation-duration.s]="c.duration">
+                {{ c.name }}
+              </text>
+                    
+              <!-- Accurate Star Mappings -->
+              @for (star of c.stars; track $index) {
+                <circle [attr.cx]="star.x" [attr.cy]="star.y" [attr.r]="star.r"
+                        [attr.fill]="star.color"
+                        class="star-pulse"
+                        [style.animation-delay.s]="c.delay + ($index * 0.5)" />
+              }
+            }
+          </g>
+        </svg>
+      </div>
+    </div>
+    
+    <div style="position:relative;z-index:1;width:100%;min-height:550px;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:2rem 0;">
+
+      <!-- Dynamic Geolocation Search Engine -->
+      <form (submit)="searchLocation($event)" style="position:absolute;top:1.5rem;left:50%;transform:translateX(-50%);z-index:20;">
+        <input type="text" 
+               id="locationSearch"
+               name="locationSearch"
+               autocomplete="off"
+               [placeholder]="solarService.locationName()" 
+               [disabled]="isSearching()"
+               style="font-family:var(--font-mono);font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--klee-linen-lt);background:rgba(15,23,42,.6);backdrop-filter:blur(8px);border:1px solid rgba(45,212,191,0.3);padding:.4rem 1rem;border-radius:12px;text-align:center;width:240px;outline:none;transition:all 0.3s ease;box-shadow:0 0 15px rgba(0,0,0,0.4), inset 0 0 10px rgba(45,212,191,0.1);"
+               onfocus="this.style.borderColor='rgba(45,212,191,0.8)'; this.style.boxShadow='0 0 20px rgba(45,212,191,0.4), inset 0 0 15px rgba(45,212,191,0.2)'"
+               onblur="this.style.borderColor='rgba(45,212,191,0.3)'; this.style.boxShadow='0 0 15px rgba(0,0,0,0.4), inset 0 0 10px rgba(45,212,191,0.1)'">
+        
+        <!-- Kinetic Loading Indicator -->
+        @if (isSearching()) {
+          <div style="position:absolute;top:50%;right:12px;transform:translateY(-50%);">
+            <span class="sig-dot sig-dot--live animate-pulse" style="width:6px;height:6px;background:rgba(45,212,191,1);box-shadow:0 0 8px rgba(45,212,191,0.8);"></span>
+          </div>
+        }
+      </form>
+
+      <!-- Global Compass Clocks (Quadrant Matrices) -->
+      
+      <!-- Top-Left (2x5 Grid) -->
+      <div style="position:absolute; top:1.5rem; left:1.5rem; z-index:5; display:grid; grid-template-columns: auto auto; column-gap: 3rem; row-gap: 1.25rem;">
+        @for (clock of tlClocks(); track clock.id) {
+          <div (click)="teleportToClock(clock)" class="world-clock-node hover:-translate-y-1 hover:brightness-125" style="cursor:pointer; transition:all 0.2s ease; text-align:left;">
+            <div style="font-family:var(--font-mono);font-size:0.55rem;letter-spacing:0.15em;text-transform:uppercase;color:rgba(45,212,191,0.85);margin-bottom:0.1rem;">{{ clock.label }}</div>
+            <div style="font-family:var(--font-mono);font-size:1.1rem;font-weight:600;color:var(--klee-gold);letter-spacing:0.05em;line-height:1;">
+              @for (tick of [clock.time]; track tick) { <span style="display:inline-block;" class="clock-time-anim">{{ tick }}</span> }
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Top-Right -->
+      <div style="position:absolute; top:1.5rem; right:1.5rem; z-index:5; display:flex; gap: 3rem; flex-direction: row-reverse;">
+        @for (clock of trClocks(); track clock.id) {
+          <div (click)="teleportToClock(clock)" class="world-clock-node hover:-translate-y-1 hover:brightness-125" style="cursor:pointer; transition:all 0.2s ease; text-align:right;">
+            <div style="font-family:var(--font-mono);font-size:0.55rem;letter-spacing:0.15em;text-transform:uppercase;color:rgba(45,212,191,0.85);margin-bottom:0.1rem;">{{ clock.label }}</div>
+            <div style="font-family:var(--font-mono);font-size:1.1rem;font-weight:600;color:var(--klee-gold);letter-spacing:0.05em;line-height:1;">
+              @for (tick of [clock.time]; track tick) { <span style="display:inline-block;" class="clock-time-anim">{{ tick }}</span> }
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Bottom-Left -->
+      <div style="position:absolute; bottom:1.5rem; left:1.5rem; z-index:5; display:flex; gap: 3rem;">
+        @for (clock of blClocks(); track clock.id) {
+          <div (click)="teleportToClock(clock)" class="world-clock-node hover:-translate-y-1 hover:brightness-125" style="cursor:pointer; transition:all 0.2s ease; text-align:left;">
+            <div style="font-family:var(--font-mono);font-size:0.55rem;letter-spacing:0.15em;text-transform:uppercase;color:rgba(45,212,191,0.85);margin-bottom:0.1rem;">{{ clock.label }}</div>
+            <div style="font-family:var(--font-mono);font-size:1.1rem;font-weight:600;color:var(--klee-gold);letter-spacing:0.05em;line-height:1;">
+              @for (tick of [clock.time]; track tick) { <span style="display:inline-block;" class="clock-time-anim">{{ tick }}</span> }
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Bottom-Right -->
+      <div style="position:absolute; bottom:1.5rem; right:1.5rem; z-index:5; display:flex; gap: 3rem; flex-direction: row-reverse;">
+        @for (clock of brClocks(); track clock.id) {
+          <div (click)="teleportToClock(clock)" class="world-clock-node hover:-translate-y-1 hover:brightness-125" style="cursor:pointer; transition:all 0.2s ease; text-align:right;">
+            <div style="font-family:var(--font-mono);font-size:0.55rem;letter-spacing:0.15em;text-transform:uppercase;color:rgba(45,212,191,0.85);margin-bottom:0.1rem;">{{ clock.label }}</div>
+            <div style="font-family:var(--font-mono);font-size:1.1rem;font-weight:600;color:var(--klee-gold);letter-spacing:0.05em;line-height:1;">
+              @for (tick of [clock.time]; track tick) { <span style="display:inline-block;" class="clock-time-anim">{{ tick }}</span> }
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Astrolabe Orbit Rings & Twilight Boundaries -->
+      <svg viewBox="-210 -210 420 420" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:420px;height:420px;pointer-events:none;z-index:0;overflow:visible;">
+        <!-- Core physical transit rings -->
+        <circle cx="0" cy="0" r="200" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1" stroke-dasharray="2 4"/>
+        <circle cx="0" cy="0" r="140" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1" stroke-dasharray="2 4"/>
+        
+        <!-- Golden Hour Arczones -->
+        @for (arc of goldenHourArcs(); track $index) {
+          <circle cx="0" cy="0" r="200" fill="none" stroke="rgba(251,191,36,0.6)" stroke-width="3"
+                  [style.stroke-dasharray]="arc.circ"
+                  [style.stroke-dashoffset]="arc.offset"
+                  [style.transform]="'rotate(' + arc.rot + 'deg)'"
+                  style="filter: drop-shadow(0 0 6px rgba(251,191,36,0.5));" />
+        }
+        
+        <!-- Blue Hour Arczones -->
+        @for (arc of blueHourArcs(); track $index) {
+          <circle cx="0" cy="0" r="200" fill="none" stroke="rgba(96,165,250,0.6)" stroke-width="3"
+                  [style.stroke-dasharray]="arc.circ"
+                  [style.stroke-dashoffset]="arc.offset"
+                  [style.transform]="'rotate(' + arc.rot + 'deg)'"
+                  style="filter: drop-shadow(0 0 6px rgba(96,165,250,0.5));" />
+        }
+      </svg>
+
+      <!-- ==============================================
+           THE EARTH ARRAY (Center)
+           ============================================== -->
+      <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10;display:flex;flex-direction:column;align-items:center;gap:.8rem;">
+        
+        <div class="globe" style="width:160px;height:160px;margin-bottom:0.5rem;"
+             [style.--gx.%]="globeBgPosX()"
+             [style.--gy.%]="globeBgPosY()"
+             [style.--cloud-pct]="weatherService.current_cloud_cover().metric"
+             (mousedown)="startGlobeDrag($event)"
+             (mousemove)="onGlobeDrag($event)"
+             (window:mouseup)="endGlobeDrag()"
+             (touchstart)="startGlobeDrag($event)"
+             (touchmove)="onGlobeDrag($event)"
+             (window:touchend)="endGlobeDrag()"
+             (mouseenter)="globeHovered.set(true)"
+             (mouseleave)="globeHovered.set(false)"
+             (dragstart)="$event.preventDefault()"
+             (click)="onGlobeClick($event)">
+          <!-- Parallax Volumetric Clouds overlay -->
+          <div class="globe-clouds" [style.opacity]="(weatherService.current_cloud_cover().metric || 0) / 100"></div>
+
+          <!-- Accurate GPS Surface Tracker (nested under clouds) -->
+          @if (sitePinVisible()) {
+            <span class="sig-dot sig-dot--live animate-pulse" 
+                  style="position:absolute;width:8px;height:8px;box-shadow:0 0 12px rgba(45,212,191,1);background:rgba(45,212,191,1);transform:translate(-50%,-50%);z-index:2;"
+                  [style.left.%]="sitePinX()"
+                  [style.top.%]="sitePinY()">
+            </span>
+          }
+        </div>
+
+        <!-- Atmospheric readouts under Earth -->
+        <div style="display:flex;gap:1.5rem;background:rgba(15,23,42,.6);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.05);padding:.6rem 1rem;border-radius:12px;">
+          <!-- Pres -->
+          <div style="text-align:center;">
+            <div style="font-family:var(--font-mono);font-size:.45rem;letter-spacing:.15em;opacity:.5;text-transform:uppercase;margin-bottom:.2rem;">Pressure</div>
+            <div class="tile-value" style="font-size:1.1rem;">{{ weatherService.current_pressure().metric !== null ? (weatherService.current_pressure().metric | number:'1.0-0') : '—' }}<span class="tile-unit" style="font-size:.6rem"> {{ weatherService.current_pressure().metric_qualifier }}</span></div>
+          </div>
+          <!-- Cloud -->
+          <div style="text-align:center;">
+            <div style="font-family:var(--font-mono);font-size:.45rem;letter-spacing:.15em;opacity:.5;text-transform:uppercase;margin-bottom:.2rem;">Clouds</div>
+            <div class="tile-value" style="font-size:1.1rem;">{{ weatherService.current_cloud_cover().metric !== null ? weatherService.current_cloud_cover().metric : '—' }}<span class="tile-unit" style="font-size:.6rem"> {{ weatherService.current_cloud_cover().metric_qualifier }}</span></div>
+          </div>
+          <!-- Vis -->
+          <div style="text-align:center;">
+            <div style="font-family:var(--font-mono);font-size:.45rem;letter-spacing:.15em;opacity:.5;text-transform:uppercase;margin-bottom:.2rem;">Vis</div>
+            <div class="tile-value" style="font-size:1.1rem;">{{ weatherService.current_visibility().metric !== null ? weatherService.current_visibility().metric : '—' }}<span class="tile-unit" style="font-size:.6rem"> {{ weatherService.current_visibility().metric_qualifier }}</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==============================================
+           THE SUN ARRAY (Orbiting)
+           ============================================== -->
+      <div style="position:absolute;top:50%;left:50%;width:0;height:0;z-index:9;"
+           [style.transform]="'rotate(' + sunOrbitRot() + 'deg)'">
+        
+        <div style="position:absolute;top:-200px;left:0;display:flex;flex-direction:column;align-items:center;gap:.6rem;"
+             [style.transform]="'translate(-50%,-50%) rotate(' + (-sunOrbitRot()) + 'deg)'">
+          
+          <div class="sun-globe" style="width:160px;height:160px;position:relative;">
+            <!-- UV Index Hovering immediately over the Sun -->
+            <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;z-index:2;">
+              <div style="font-size:3.2rem;font-weight:700;color:var(--klee-amber-lt);text-shadow:0 0 20px rgba(0,0,0,0.9), 0 0 40px rgba(245,158,11,0.6);line-height:1;">
+                {{ solarService.uvIndex() | number:'1.0-1' }}
+              </div>
+              <div style="font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;font-weight:600;opacity:.9;font-family:var(--font-mono);color:#fff;text-shadow:0 2px 4px rgba(0,0,0,0.8);">
+                UV {{ solarService.uvRisk() }}
+              </div>
+            </div>
+          </div>
+          
+          <!-- Irradiance Hovering below Sun -->
+          <div style="background:rgba(15,23,42,.6);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.05);padding:.3rem .6rem;border-radius:12px;text-align:center;">
+            <div class="tile-title" style="margin-top:0;opacity:0.8;font-size:.5rem;letter-spacing:.15em;">IRRADIANCE</div>
+            <div class="tile-value" style="font-size:1rem;margin-top:.15rem;color:var(--klee-linen-lt);">
+              {{ solarService.estimatedGHI() | number:'1.0-0' }}<span class="tile-unit" style="font-size:.6rem"> W/m²</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==============================================
+           THE MOON ARRAY (Orbiting)
+           ============================================== -->
+      <div style="position:absolute;top:50%;left:50%;width:0;height:0;z-index:12;"
+           [style.transform]="'rotate(' + moonOrbitRot() + 'deg)'">
+        
+        <div style="position:absolute;top:-140px;left:0;display:flex;flex-direction:column;align-items:center;gap:.4rem;"
+             [style.transform]="'translate(-50%,-50%) rotate(' + (-moonOrbitRot()) + 'deg)'">
+          
+          <svg viewBox="0 0 60 60" style="width:80px;height:80px;overflow:visible;">
+            <defs>
+              <clipPath id="moonPhaseClip">
+                <path [attr.d]="moonIlluminationPath()"/>
+              </clipPath>
+              <clipPath id="circleClip">
+                <circle cx="30" cy="30" r="28"/>
+              </clipPath>
+            </defs>
+            <g clip-path="url(#circleClip)">
+              <image href="/realistic_moon.png" x="-2" y="-2" width="64" height="64" opacity="0.4" style="filter: brightness(0.4) sepia(1) hue-rotate(180deg) saturate(2);" />
+            </g>
+            <g clip-path="url(#circleClip)">
+               <g clip-path="url(#moonPhaseClip)">
+                 <image href="/realistic_moon.png" x="-2" y="-2" width="64" height="64" opacity="0.9" style="filter: contrast(1.2) brightness(1.2);" />
+               </g>
+            </g>
+            <circle cx="30" cy="30" r="28" fill="none" stroke="rgba(200,185,138,.2)" stroke-width="0.5"/>
+            <circle cx="30" cy="30" r="28" fill="none" stroke="rgba(45,212,191,.1)" stroke-width="2" filter="blur(2px)"/>
+          </svg>
+
+          <!-- Moon Phase Text Floating -->
+          <div style="background:rgba(15,23,42,.6);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.05);padding:.3rem .6rem;border-radius:12px;text-align:center;">
+            <div class="tile-title" style="margin-top:0;opacity:0.8;font-size:.5rem;letter-spacing:.15em;">{{ solarService.moonPhaseName() | uppercase }}</div>
+            <div class="tile-value" style="font-size:1rem;margin-top:.15rem;color:var(--klee-linen-lt);">{{ solarService.moonIllumination() }}<span class="tile-unit" style="font-size:.6rem">%</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==============================================
+           THE FORECAST ARRAY (Orbiting Nodes)
+           ============================================== -->
+      @for (node of forecastNodes(); track node.dt) {
+        <div style="position:absolute;top:50%;left:50%;width:0;height:0;z-index:8;"
+             [style.transform]="'rotate(' + node.azimuth + 'deg)'">
+             
+          <div style="position:absolute;top:-200px;left:0;display:flex;flex-direction:column;align-items:center;transition:all 1s ease;"
+               [style.transform]="'translate(-50%,-50%) rotate(' + (-node.azimuth) + 'deg)'">
+            
+            <!-- Timeline Pin -->
+            <div style="width:10px;height:10px;background:#38bdf8;border-radius:50%;box-shadow:0 0 10px rgba(56,189,248,0.8);margin-bottom:6px;"></div>
+            
+            <!-- Physical Metric Flag -->
+            <div style="background:rgba(15,23,42,0.85);backdrop-filter:blur(6px);border:1px solid rgba(56,189,248,0.4);padding:4px 6px;border-radius:6px;text-align:center;display:flex;flex-direction:column;gap:1px;white-space:nowrap;filter:drop-shadow(0 8px 16px rgba(0,0,0,0.3));">
+              <span style="font-family:var(--font-mono);font-size:0.5rem;color:rgba(255,255,255,0.6);">{{ node.dt | date:'h a' }}</span>
+              <span style="font-weight:700;font-size:0.8rem;color:#f8fafc;line-height:1;">{{ Math.round(node.temp) }}°</span>
+              <span style="font-family:var(--font-mono);font-size:0.5rem;color:#38bdf8;opacity:0.8;">{{ node.humidity }}%</span>
+            </div>
+            
+          </div>
+        </div>
+      }
+
+    </div>
+  </div>
+
+  <!-- ▓▓▓ WIND — KINETIC ▓▓▓ -->
+  <div class="tile tile--ink" style="grid-area:wind;min-height:auto;flex-direction:row;align-items:center;justify-content:space-between;gap:2rem;flex-wrap:wrap;overflow:hidden;position:relative;">
+    
+    <!-- Dynamic Reflected Wind Comets -->
+    <div class="starmap-container" style="opacity: 0.85; z-index: 1;">
+      <div class="starmap-bg starmap-bg-1"></div>
+      <div class="starmap-bg starmap-bg-2"></div>
+      <div class="starmap-bg starmap-bg-3"></div>
+      <div class="starmap">
+        <svg viewBox="-550 -550 1100 1100" style="position:absolute;top:50%;left:50%;width:1100px;height:1100px;overflow:visible;pointer-events:none;transition:transform 1s ease-in-out;"
+             [style.transform]="'translate(-50%, -50%) scaleY(-1) rotate(' + siderealRotation() + 'deg)'">
+          <g class="astrology-draw">
+            @for (c of constellations; track c.name) {
+              <!-- Reflection of Constellation Lines -->
+              <path [attr.d]="c.path" 
+                    fill="none" 
+                    [attr.stroke]="c.color" 
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="draw-path"
+                    [style.animation-delay.s]="c.delay"
+                    [style.animation-duration.s]="c.duration" />
+                    
+              <!-- Astrological Label -->
+              <text [attr.x]="c.textPos.x" [attr.y]="c.textPos.y" 
+                    font-family="var(--font-mono)" font-size="14" font-weight="500"
+                    [attr.fill]="c.color" 
+                    class="constellation-label"
+                    style="letter-spacing:0.2em; text-transform:uppercase; pointer-events:none; transition: transform 1s ease-in-out;"
+                    [style.transform-origin]="c.textPos.x + 'px ' + c.textPos.y + 'px'"
+                    [style.transform]="'scaleY(-1) rotate(' + (-siderealRotation()) + 'deg)'"
+                    [style.animation-delay.s]="c.delay"
+                    [style.animation-duration.s]="c.duration">
+                {{ c.name }}
+              </text>
+                    
+              <!-- Reflection of Star Mappings -->
+              @for (star of c.stars; track $index) {
+                <circle [attr.cx]="star.x" [attr.cy]="star.y" [attr.r]="star.r"
+                        [attr.fill]="star.color"
+                        class="star-pulse"
+                        [style.animation-delay.s]="c.delay + ($index * 0.5)" />
+              }
+            }
+          </g>
+        </svg>
+      </div>
+    </div>
+    <div style="position:relative;z-index:1;display:flex;flex-direction:column;height:100%;">
+      <!-- Top Header Row -->
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;">
+        <span class="tile-title" style="margin-top:0;">◈ Wind<br>Velocity</span>
+        <span class="sig-dot sig-dot--live animate-pulse" style="margin-top:.4rem;"></span>
+      </div>
+
+      <!-- Main Readout (Bottom Row) -->
+      <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:auto;">
+        
+        <!-- Left Side Metrics -->
+        <div style="display:flex; flex-direction:column;">
+          <p style="font-family:var(--font-mono);font-size:.6rem;opacity:.65;margin-bottom:.5rem;line-height:1.5;">
+            <span style="color:rgba(125,211,252,.5);">WIND_V</span> := <span style="color:rgba(200,185,138,.7);font-weight:600;">{{ weatherService.current_wind().metric !== null ? weatherService.current_wind().metric : '—' }}</span>
+          </p>
+          <div style="display:flex;align-items:flex-end;gap:.4rem;">
+            <span style="font-family:var(--font-mono);font-weight:900;line-height:1;letter-spacing:-.03em;color:rgba(200,185,138,.9);font-size:3.8rem;margin-top:-0.5rem;">
+              {{ weatherService.current_wind().metric !== null ? weatherService.current_wind().metric : '—' }}
+            </span>
+            <span class="tile-unit" style="margin-bottom:.45rem;color:rgba(200,185,138,.4);">
+              {{ weatherService.current_wind().metric_qualifier }}
+            </span>
+          </div>
+          <span class="tile-sub" style="margin-top:.4rem;">NOAA SPA · Adafruit IO</span>
+        </div>
+
+        <!-- Dynamic Windsock Icon (Right Side) -->
+        <div style="width:70px;height:70px;position:relative;margin-bottom:0.2rem;display:flex;justify-content:center;align-items:flex-end;">
+          <svg width="100%" height="100%" viewBox="-10 10 110 80" style="opacity:0.9; transform-origin: 10% 40%; overflow:visible;" aria-hidden="true"
+               [style.animation]="'windsock-swing ' + (15 / ((weatherService.current_wind().metric || 8) + 1)) + 's ease-in-out infinite'">
+            <defs>
+              <filter id="windWaveRipple">
+                <feTurbulence type="fractalNoise" baseFrequency="0.015" numOctaves="1" result="noise" />
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="4" xChannelSelector="R" yChannelSelector="G">
+                  <animate attributeName="scale" values="0; 6; 0" [attr.dur]="(40 / ((weatherService.current_wind().metric || 8) + 1)) + 's'" repeatCount="indefinite" />
+                </feDisplacementMap>
+              </filter>
+            </defs>
+            
+            <g filter="url(#windWaveRipple)">
+              <!-- Anchor Strings -->
+              <line x1="10" y1="35" x2="30" y2="20" stroke="rgba(255,255,255,0.4)" stroke-width="1"/>
+              <line x1="10" y1="35" x2="30" y2="50" stroke="rgba(255,255,255,0.4)" stroke-width="1"/>
+              <line x1="10" y1="35" x2="25" y2="35" stroke="rgba(255,255,255,0.6)" stroke-width="1"/>
+              <path d="M -10,35 L 5,35" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" stroke-dasharray="2 3" />
+              
+              <!-- Front Ring (White) -->
+              <polygon points="30,20 40,25 40,45 30,50 25,35" fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.6)" stroke-width="1"/>
+              <polygon points="30,20 40,25 35,35" fill="rgba(255,255,255,0.9)" />
+              <polygon points="40,25 40,45 35,35" fill="rgba(200,210,220,0.9)" />
+              <polygon points="40,45 30,50 35,35" fill="rgba(148,163,184,0.9)" />
+              <polygon points="30,50 25,35 35,35" fill="rgba(100,116,139,0.9)" />
+              <polygon points="25,35 30,20 35,35" fill="rgba(226,232,240,0.9)" />
+              <polygon points="25,35 30,20 23,25 20,40" fill="rgba(15,23,42,0.8)" />
+
+              <!-- Middle Ring 1 (Orange) -->
+              <polygon points="40,25 55,28 55,42 40,45 35,35" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1"/>
+              <polygon points="40,25 55,28 48,35" fill="rgba(249,115,22,0.95)" />
+              <polygon points="55,28 55,42 48,35" fill="rgba(234,88,12,0.95)" />
+              <polygon points="55,42 40,45 48,35" fill="rgba(194,65,12,0.95)" />
+              <polygon points="40,45 35,35 48,35" fill="rgba(154,52,18,0.95)" />
+              <polygon points="35,35 40,25 48,35" fill="rgba(251,146,60,0.95)" />
+
+              <!-- Middle Ring 2 (White) -->
+              <polygon points="55,28 70,30 65,40 55,42 48,35" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1"/>
+              <polygon points="55,28 70,30 60,35" fill="rgba(255,255,255,0.9)" />
+              <polygon points="70,30 65,40 60,35" fill="rgba(200,210,220,0.9)" />
+              <polygon points="65,40 55,42 60,35" fill="rgba(148,163,184,0.9)" />
+              <polygon points="55,42 48,35 60,35" fill="rgba(100,116,139,0.9)" />
+              <polygon points="48,35 55,28 60,35" fill="rgba(226,232,240,0.9)" />
+
+              <!-- Tail Ring (Orange) -->
+              <polygon points="70,30 85,32 80,38 65,40 60,35" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1"/>
+              <polygon points="70,30 85,32 75,35" fill="rgba(249,115,22,0.95)" />
+              <polygon points="85,32 80,38 75,35" fill="rgba(234,88,12,0.95)" />
+              <polygon points="80,38 65,40 75,35" fill="rgba(194,65,12,0.95)" />
+              <polygon points="65,40 60,35 75,35" fill="rgba(154,52,18,0.95)" />
+              <polygon points="60,35 70,30 75,35" fill="rgba(251,146,60,0.95)" />
+
+              <!-- Geometric Wind Trails -->
+              <path d="M 85,30 L 95,28 M 80,40 L 92,42 M 15,10 L 45,15" fill="none" stroke="rgba(45,212,191,0.6)" stroke-width="1.5" stroke-dasharray="2 4" />
+            </g>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>

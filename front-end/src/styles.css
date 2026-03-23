@@ -1,0 +1,687 @@
+@import "tailwindcss";
+
+
+/* ============================================================
+   PAUL KLEE — MASONIC WATERFALL
+   Inspired by "Fire in the Evening", "Castle and Sun",
+   "Ancient Harmony". Jewel-toned mosaic tiles in sacred
+   geometric cascade. Data flows like light through stained glass.
+   ============================================================ */
+
+:root {
+  /* Canvas — aged parchment-black */
+  --canvas:     #100e0a;
+
+  /* ── Klee tile palette ── */
+  --klee-gold:    #b8820a;   /* ochre — Room Temp */
+  --klee-sienna:  #7a2e1e;   /* burnt sienna — Ext Temp */
+  --klee-teal:    #14534a;   /* deep teal — Room Humidity */
+  --klee-slate:   #0a2845;   /* deep storm abyss — Ext Humidity */
+  --klee-slate-dk:#04101e;   /* midnight rain — Ext Humidity Gradient */
+  --klee-violet:  #2e1854;   /* deep violet — Solar Position */
+  --klee-amber:   #7c4010;   /* warm amber — Solar Index */
+  --klee-ink:     #0e1318;   /* near-black — Wind / Footer */
+  --klee-linen:   #c8b98a;   /* warm linen — header bg */
+
+  /* Tile light tints — text on tiles */
+  --klee-gold-lt:   #fce9b0;
+  --klee-sienna-lt: #f7c9b8;
+  --klee-teal-lt:   #a8e0d5;
+  --klee-slate-lt:  #7dd3fc; /* crisp rain drop highlight */
+  --klee-violet-lt: #d4c0f5;
+  --klee-amber-lt:  #fad8a8;
+  --klee-ink-lt:    #8a9aaa;
+  --klee-linen-dk:  #3a2c10;
+
+  /* Signal */
+  --sig-live:   #4ade80;
+  --sig-warn:   #fb923c;
+  --sig-err:    #f87171;
+
+  /* Typography */
+  --font-serif: "Playfair Display", "Georgia", serif;
+  --font-mono:  "IBM Plex Mono", Menlo, Consolas, monospace;
+  --font-body:  "Inter", system-ui, sans-serif;
+
+  /* Tile texture — subtle linen weave */
+  --weave: url("data:image/svg+xml,%3Csvg viewBox='0 0 8 8' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='1' height='8' fill='rgba(0,0,0,.06)'/%3E%3Crect y='0' width='8' height='1' fill='rgba(0,0,0,.06)'/%3E%3C/svg%3E");
+}
+
+/* ============================================================
+   RESET / BASE
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+app-root { display: flex; flex-direction: column; min-height: 100vh; }
+
+body {
+  background-color: var(--canvas);
+  color: var(--klee-linen);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  /* Geometric grid undertone */
+  background-image:
+    linear-gradient(rgba(200,185,138,.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(200,185,138,.025) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* ============================================================
+   MASONIC HEADER BANNER
+   ============================================================ */
+.masthead {
+  background-color: var(--klee-linen);
+  background-image: var(--weave);
+  color: var(--klee-linen-dk);
+  padding: 1.75rem 2rem;
+  border-bottom: 3px solid var(--klee-gold);
+}
+
+/* ============================================================
+   TILE — Klee mosaic block
+   Each tile is a solid jewel-toned rectangle.
+   No rounded corners — Klee geometry is angular.
+   ============================================================ */
+.tile {
+  background-image: var(--weave);
+  position: relative;
+  overflow: hidden;
+  transition: filter 200ms ease;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  min-height: 160px;
+}
+
+.tile:hover { filter: brightness(1.08); }
+
+/* Thin gold seam at edge (masonic joint) */
+.tile::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 1.5px solid rgba(200,185,138,.12);
+  pointer-events: none;
+}
+
+/* Klee-style internal geometry mark — diagonal hatching in corner */
+.tile::before {
+  content: "";
+  position: absolute;
+  bottom: -20px; right: -20px;
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  background: rgba(0,0,0,.12);
+  pointer-events: none;
+}
+
+/* Per-color tile variants */
+.tile--gold   { background-color: var(--klee-gold);   color: var(--klee-gold-lt); }
+.tile--sienna { background-color: var(--klee-sienna); color: var(--klee-sienna-lt); }
+.tile--teal   { background-color: var(--klee-teal);   color: var(--klee-teal-lt); }
+.tile--slate  { background-color: var(--klee-slate);  color: var(--klee-slate-lt); }
+.tile--violet { background-color: var(--klee-violet); color: var(--klee-violet-lt); }
+.tile--amber  { background-color: var(--klee-amber);  color: var(--klee-amber-lt); }
+.tile--ink    { background-color: var(--klee-ink);    color: var(--klee-ink-lt); }
+.tile--linen  { background-color: var(--klee-linen);  color: var(--klee-linen-dk); }
+.tile--teal   { background: linear-gradient(145deg, var(--klee-teal-dk), var(--klee-teal)); }
+.tile--gold   { background: linear-gradient(145deg, var(--klee-gold), #b45309); }
+.tile--sienna { background: linear-gradient(145deg, var(--klee-sienna), #7c2d12); }
+.tile--ink    { background: linear-gradient(145deg, var(--klee-ink-dk), var(--klee-ink)); }
+.tile--slate  { background: linear-gradient(145deg, var(--klee-slate-dk), var(--klee-slate)); }
+
+.tile--indoor {
+  background-image: linear-gradient(to top, rgba(15,23,42,0.95) 0%, rgba(180,83,9,0.3) 50%, rgba(15,23,42,0.7) 100%), url("/living_room.png");
+  background-size: cover;
+  background-position: center bottom;
+}
+
+.tile--wind {
+  position: relative;
+  overflow: hidden;
+  background: transparent;
+}
+
+.tile--solar-origami {
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(circle at 80% 20%, rgba(251,191,36,0.2) 0%, rgba(245,158,11,0.05) 50%, rgba(15,23,42,0.95) 100%);
+  color: var(--klee-amber-lt);
+  border-top: 1px solid rgba(251,191,36,0.15);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), inset 0 0 40px rgba(245,158,11,0.05);
+}
+
+@keyframes sunburst-rotate {
+  from { transform: rotate(0deg) scale(1.15); }
+  to   { transform: rotate(360deg) scale(1.15); }
+}
+
+
+
+@keyframes wind-ripple {
+  0%   { transform: scale(1.01) translate(0, 0) skewX(-0.1deg); }
+  25%  { transform: scale(1.01) translate(-0.2%, 0.3%) skewX(0.1deg); }
+  50%  { transform: scale(1.01) translate(0.3%, -0.2%) skewX(-0.1deg); }
+  75%  { transform: scale(1.01) translate(-0.1%, -0.1%) skewX(0.2deg); }
+  100% { transform: scale(1.01) translate(0, 0) skewX(-0.1deg); }
+}
+
+@keyframes windsock-swing {
+  0%   { transform: rotate(-5deg) translateY(0px) skewY(2deg); }
+  25%  { transform: rotate(12deg) translateY(-2px) skewY(-1deg); }
+  50%  { transform: rotate(-8deg) translateY(1px) skewY(3deg); }
+  75%  { transform: rotate(15deg) translateY(-3px) skewY(-2deg); }
+  100% { transform: rotate(-5deg) translateY(0px) skewY(2deg); }
+}
+
+/* ============================================================
+   TILE TYPOGRAPHY
+   ============================================================ */
+.tile-label {
+  font-family: var(--font-mono);
+  font-size: .55rem;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  opacity: .55;
+  flex-shrink: 0;
+}
+
+.tile-title {
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-top: .4rem;
+  flex-shrink: 0;
+}
+
+.tile-value {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  line-height: 1;
+  margin-top: auto;
+  letter-spacing: -.02em;
+}
+
+.tile-unit {
+  font-family: var(--font-mono);
+  font-size: .9rem;
+  opacity: .5;
+  margin-left: .3rem;
+  letter-spacing: 0;
+}
+
+.tile-sub {
+  font-family: var(--font-mono);
+  font-size: .55rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  opacity: .4;
+  margin-top: .5rem;
+}
+
+/* ============================================================
+   LIVE INDICATOR
+   ============================================================ */
+.sig-dot {
+  width: .45rem;
+  height: .45rem;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.sig-dot--live   { background: var(--sig-live);  box-shadow: 0 0 6px var(--sig-live); }
+.sig-dot--warn   { background: var(--sig-warn);  box-shadow: 0 0 6px var(--sig-warn); }
+.sig-dot--err    { background: var(--sig-err);   box-shadow: 0 0 6px var(--sig-err); }
+
+/* ============================================================
+   PROGRESS BAR
+   ============================================================ */
+.uv-track {
+  height: 4px;
+  background: rgba(0,0,0,.3);
+  border-radius: 2px;
+  overflow: hidden;
+  margin: .5rem 0;
+}
+.uv-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width .8s ease;
+}
+
+/* ============================================================
+   MASONIC DIVIDER — sacred geometry rule
+   ============================================================ */
+.masonic-rule {
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent 0%, var(--klee-gold) 15%,
+    var(--klee-linen) 50%,
+    var(--klee-gold) 85%, transparent 100%
+  );
+  opacity: .35;
+  margin: 0;
+}
+
+/* ============================================================
+   SCROLLBAR
+   ============================================================ */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--canvas); }
+::-webkit-scrollbar-thumb { background: var(--klee-gold); border-radius: 2px; }
+
+/* ============================================================
+   ORIGAMI UNFOLD UI ANIMATION
+   Entire UI opens slowly within 5 seconds
+   ============================================================ */
+@keyframes ui-origami-unfold {
+  0% {
+    opacity: 0;
+    transform: perspective(1500px) rotateX(80deg) rotateY(-30deg) translateZ(-400px);
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: perspective(1500px) rotateX(0deg) rotateY(0deg) translateZ(0);
+  }
+}
+
+.masthead {
+  animation: ui-origami-unfold 2s cubic-bezier(0.16, 1, 0.3, 1) both;
+  transform-origin: top center;
+}
+
+.tile { 
+  animation: ui-origami-unfold 2.5s cubic-bezier(0.16, 1, 0.3, 1) both; 
+  transform-origin: center center;
+}
+
+.tile:nth-child(1) { animation-delay: 0.3s; transform-origin: top left; }
+.tile:nth-child(2) { animation-delay: 0.6s; transform-origin: top right; }
+.tile:nth-child(3) { animation-delay: 1.0s; transform-origin: left center; }
+.tile:nth-child(4) { animation-delay: 1.4s; transform-origin: bottom right; }
+.tile:nth-child(5) { animation-delay: 1.8s; transform-origin: bottom left; }
+.tile:nth-child(6) { animation-delay: 2.2s; transform-origin: right center; }
+.tile:nth-child(7) { animation-delay: 2.5s; transform-origin: bottom center; }
+
+/* ============================================================
+   ORIGAMI RAINDROPS — Mathematical weather flow
+   ============================================================ */
+@keyframes origami-fall {
+  0%   { transform: translateY(-20px) scale3d(0.2, 0.2, 1) rotateX(90deg) rotateZ(0deg); opacity: 0; }
+  15%  { opacity: var(--drop-opacity, 0.4); transform: translateY(30px) scale3d(1, 1, 1) rotateX(20deg) rotateZ(calc(var(--drop-rot, 90deg) * 0.5)); }
+  85%  { opacity: var(--drop-opacity, 0.4); transform: translateY(250px) scale3d(1, 1, 1) rotateX(-20deg) rotateZ(var(--drop-rot, 90deg)); }
+  100% { transform: translateY(300px) scale3d(0.2, 1.5, 1) rotateX(-90deg) rotateZ(calc(var(--drop-rot, 90deg) * 1.5)); opacity: 0; }
+}
+
+.origami-drop {
+  animation: origami-fall linear infinite;
+  transform-origin: center;
+}
+
+/* ============================================================
+   ORIGAMI HEAT — Upward floating chevrons
+   ============================================================ */
+@keyframes heat-rise {
+  0%   { transform: translateY(0px) scale3d(0.2, 0.2, 1) rotateX(90deg) rotateY(45deg); opacity: 0; }
+  25%  { opacity: var(--heat-o, 0.4); transform: translateY(-75px) scale3d(var(--heat-s, 1), var(--heat-s, 1), 1) rotateX(15deg) rotateY(0deg); }
+  75%  { opacity: var(--heat-o, 0.4); transform: translateY(-225px) scale3d(var(--heat-s, 1), var(--heat-s, 1), 1) rotateX(-15deg) rotateY(0deg); }
+  100% { transform: translateY(-300px) scale3d(0.2, 1.5, 1) rotateX(-90deg) rotateY(-45deg); opacity: 0; }
+}
+.origami-heat {
+  animation: heat-rise linear infinite;
+  transform-origin: center;
+}
+
+/* ============================================================
+   ORIGAMI WIND — Rightward rushing darts
+   ============================================================ */
+@keyframes wind-rush {
+  0%   { transform: translateX(0px) scale3d(0.2, 0.2, 1) rotateY(-90deg) rotateX(45deg); opacity: 0; }
+  20%  { opacity: var(--wind-o, 0.5); transform: translateX(100px) scale3d(var(--wind-s, 1), var(--wind-s, 1), 1) rotateY(0deg) rotateX(0deg); }
+  80%  { opacity: var(--wind-o, 0.5); transform: translateX(400px) scale3d(var(--wind-s, 1), var(--wind-s, 1), 1) rotateY(0deg) rotateX(0deg); }
+  100% { transform: translateX(500px) scale3d(1.5, 0.2, 1) rotateY(90deg) rotateX(-45deg); opacity: 0; }
+}
+.origami-wind {
+  animation: wind-rush linear infinite;
+  transform-origin: center;
+}
+
+@keyframes solar-spin {
+  0%   { transform: rotateZ(0deg) rotateX(20deg) rotateY(-10deg) scale3d(var(--solar-s, 1), var(--solar-s, 1), 1); opacity: var(--solar-o, 0.2); }
+  25%  { transform: rotateZ(90deg) rotateX(-10deg) rotateY(20deg) scale3d(calc(var(--solar-s, 1) * 1.1), calc(var(--solar-s, 1) * 1.1), 1); }
+  50%  { transform: rotateZ(180deg) rotateX(-20deg) rotateY(10deg) scale3d(calc(var(--solar-s, 1) * 1.2), calc(var(--solar-s, 1) * 1.2), 1); opacity: calc(var(--solar-o, 0.2) + 0.15); }
+  75%  { transform: rotateZ(270deg) rotateX(10deg) rotateY(-20deg) scale3d(calc(var(--solar-s, 1) * 1.1), calc(var(--solar-s, 1) * 1.1), 1); }
+  100% { transform: rotateZ(360deg) rotateX(20deg) rotateY(-10deg) scale3d(var(--solar-s, 1), var(--solar-s, 1), 1); opacity: var(--solar-o, 0.2); }
+}
+.origami-solar {
+  animation: solar-spin linear infinite;
+  transform-origin: center;
+}
+
+/* ============================================================
+   ORIGAMI VAPOR — Drifting clouds
+   ============================================================ */
+@keyframes vapor-drift {
+  0%   { transform: translate(0px, 0px) scale3d(0.2, 0.2, 1) rotateX(-90deg) rotateY(45deg); opacity: 0; }
+  25%  { opacity: var(--vp-o, 0.4); transform: translate(-60px, -60px) scale3d(var(--vp-s, 1), var(--vp-s, 1), 1) rotateX(0deg) rotateY(0deg); }
+  75%  { opacity: var(--vp-o, 0.4); transform: translate(-190px, -190px) scale3d(calc(var(--vp-s, 1) * 1.2), calc(var(--vp-s, 1) * 1.2), 1) rotateX(15deg) rotateY(-15deg); }
+  100% { transform: translate(-250px, -250px) scale3d(calc(var(--vp-s, 1) * 1.5), 0.1, 1) rotateX(90deg) rotateY(-45deg); opacity: 0; }
+}
+.origami-vapor {
+  animation: vapor-drift linear infinite;
+  transform-origin: center;
+}
+
+/* ============================================================
+   STARMAP — Procedural slowly spinning stars
+   ============================================================ */
+@keyframes starmap-twinkle {
+  0%, 100% { opacity: 0.15; }
+  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.02); }
+}
+
+.starmap-container {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0;
+  border-radius: inherit;
+  opacity: 0.8;
+}
+
+/* Base starmap holding the origami SVG and anchor stars */
+.starmap {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 200%; height: 200%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  animation: starmap-twinkle 8s ease-in-out infinite;
+}
+
+/* Three dense background layers twinkling independently */
+.starmap-bg {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 200%; height: 200%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.starmap-bg-1 { animation: starmap-twinkle 4s ease-in-out infinite 0s; }
+.starmap-bg-2 { animation: starmap-twinkle 6s ease-in-out infinite -2s; }
+.starmap-bg-3 { animation: starmap-twinkle 7s ease-in-out infinite -4s; }
+
+/* Using a tiny div and massive box-shadow to paint stars */
+/* ORIGINAL ANCHORS */
+.starmap::after {
+  content: ''; position: absolute; top: 50%; left: 50%; width: 2px; height: 2px; background: transparent; border-radius: 50%;
+  box-shadow: 
+    -300px -200px 1px 0px rgba(255,255,255,.8), 200px -400px 0px 0px rgba(255,255,255,.4), -100px 300px 1px 0px rgba(255,255,255,.6),
+    150px 150px 0px 0px rgba(255,255,255,.9), -400px -50px 1px 0px rgba(56,189,248,.6), 300px 250px 0px 0px rgba(255,255,255,.5),
+    -250px 400px 1px 0px rgba(251,191,36,.6), 500px -100px 0px 0px rgba(255,255,255,.7), -500px 200px 1px 0px rgba(255,255,255,.4),
+    400px 450px 0px 0px rgba(255,255,255,.8), -150px -450px 1px 0px rgba(255,255,255,.5), 50px -300px 0px 0px rgba(255,255,255,.3),
+    -50px 100px 1px 0px rgba(255,255,255,.9);
+}
+.starmap::before {
+  content: ''; position: absolute; top: 50%; left: 50%; width: 1px; height: 1px; background: transparent;
+  box-shadow: 
+    -450px -350px 0px 0px rgba(255,255,255,.5), 250px -150px 0px 0px rgba(255,255,255,.6), -350px 150px 0px 0px rgba(255,255,255,.4),
+    350px 50px 0px 0px rgba(255,255,255,.7), -200px -250px 0px 0px rgba(255,255,255,.5), 100px 350px 0px 0px rgba(255,255,255,.6),
+    -400px 250px 0px 0px rgba(255,255,255,.3), 450px -250px 0px 0px rgba(255,255,255,.5), -550px -50px 0px 0px rgba(255,255,255,.4),
+    550px 150px 0px 0px rgba(255,255,255,.6), -50px -550px 0px 0px rgba(255,255,255,.5), 250px 450px 0px 0px rgba(255,255,255,.4);
+}
+
+/* DENSE TWINKLING BG STARS */
+.starmap-bg-1::after {
+  content: ''; position: absolute; top: 50%; left: 50%; width: 1px; height: 1px; background: transparent; border-radius: 50%;
+  box-shadow: 
+    -200px -300px 0 0 rgba(14,165,233,.8), 150px -250px 0 0 rgba(255,255,255,.9), 400px -380px 0 0 rgba(255,255,255,.6),
+    -350px 200px 0 0 rgba(251,191,36,.7), 50px 350px 0 0 rgba(255,255,255,.8), 350px 180px 0 0 rgba(45,212,191,.9),
+    -480px 420px 0 0 rgba(255,255,255,.5), 520px -20px 0 0 rgba(255,255,255,.7), 80px -480px 0 0 rgba(255,255,255,.6),
+    -120px -80px 0 0 rgba(255,255,255,.4), -400px -400px 0 0 rgba(14,165,233,.9), 480px 350px 0 0 rgba(255,255,255,.8),
+    220px 80px 0 0 rgba(255,255,255,.5), -50px 200px 0 0 rgba(251,191,36,.6), 330px 450px 0 0 rgba(255,255,255,.7),
+    -250px -150px 0 0 rgba(255,255,255,.8), 10px 480px 0 0 rgba(45,212,191,.5), 450px -150px 0 0 rgba(255,255,255,.9);
+}
+.starmap-bg-2::after {
+  content: ''; position: absolute; top: 50%; left: 50%; width: 1.5px; height: 1.5px; background: transparent; border-radius: 50%;
+  box-shadow: 
+    -100px -350px 0 0 rgba(251,191,36,.8), 280px -180px 0 0 rgba(255,255,255,.7), -420px -120px 0 0 rgba(255,255,255,.6),
+    380px -50px 0 0 rgba(14,165,233,.9), -280px 120px 0 0 rgba(255,255,255,.8), 180px 250px 0 0 rgba(255,255,255,.5),
+    -150px 380px 0 0 rgba(45,212,191,.7), 420px 120px 0 0 rgba(255,255,255,.9), 20px -200px 0 0 rgba(255,255,255,.6),
+    -450px 280px 0 0 rgba(255,255,255,.8), 110px 140px 0 0 rgba(251,191,36,.5), 540px -400px 0 0 rgba(255,255,255,.7),
+    -330px -480px 0 0 rgba(255,255,255,.9), 310px 380px 0 0 rgba(14,165,233,.6), 0px 0px 0 0 rgba(255,255,255,.4),
+    -520px -220px 0 0 rgba(255,255,255,.8), 250px -420px 0 0 rgba(45,212,191,.7), -30px 300px 0 0 rgba(255,255,255,.6);
+}
+.starmap-bg-3::after {
+  content: ''; position: absolute; top: 50%; left: 50%; width: 2px; height: 2px; background: transparent; border-radius: 50%;
+  box-shadow: 
+    -380px -250px 0 0 rgba(255,255,255,.5), 100px -450px 0 0 rgba(251,191,36,.9), -180px -100px 0 0 rgba(255,255,255,.7),
+    450px -280px 0 0 rgba(14,165,233,.8), -500px 50px 0 0 rgba(255,255,255,.6), 250px 120px 0 0 rgba(45,212,191,.5),
+    -200px 450px 0 0 rgba(255,255,255,.9), 50px 500px 0 0 rgba(255,255,255,.4), 380px 250px 0 0 rgba(251,191,36,.7),
+    -80px -520px 0 0 rgba(255,255,255,.8), -320px 350px 0 0 rgba(14,165,233,.6), 510px 150px 0 0 rgba(255,255,255,.9),
+    120px -100px 0 0 rgba(255,255,255,.5), -450px -450px 0 0 rgba(45,212,191,.8), 280px 520px 0 0 rgba(255,255,255,.7),
+    -100px 180px 0 0 rgba(255,255,255,.6), 400px -100px 0 0 rgba(255,255,255,.9), -220px -450px 0 0 rgba(251,191,36,.5);
+}
+
+/* Astrological Comets - Starmap Connections */
+.origami-constellation path {
+  /* 40px distinct comet head/tail, followed by massive empty space */
+  stroke-dasharray: 60 4000;
+  stroke-dashoffset: 4000;
+  stroke-linecap: round;
+  animation: comet-fly 14s linear infinite;
+  filter: drop-shadow(0 0 6px currentColor);
+}
+.origami-constellation path:nth-child(2) {
+  animation-delay: -6s;
+  animation-duration: 18s;
+  animation-direction: reverse; /* fly the other way! */
+}
+
+/* Wind Comets — Dynamically synced to wind speed */
+.wind-comets path {
+  stroke-dasharray: 80 3000;
+  stroke-dashoffset: 3000;
+  stroke-linecap: round;
+  animation: comet-fly 10s linear infinite;
+  filter: drop-shadow(0 0 8px currentColor);
+}
+
+@keyframes comet-fly {
+  0% { stroke-dashoffset: 4000; opacity: 0; }
+  5% { opacity: 1; }
+  95% { opacity: 1; }
+  100% { stroke-dashoffset: 0; opacity: 0; }
+}
+
+/* ============================================================
+   3D Globe — Interactive Holographic Sphere
+   ============================================================ */
+.globe {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  cursor: grab;
+  /* Realistic Earth Texture (Isolate Top Map) */
+  background-image: url("/realistic_earth.png");
+  background-size: 200% 200%;
+  
+  /* Map Angular variable bindings to the correct layers */
+  /* Pan X using --gx, anchor Y to the top (0%) to hide the bottom montage half */
+  background-position: var(--gx, 0%) 0%;
+  background-repeat: repeat-x;
+
+  box-shadow:
+    inset -30px -20px 60px rgba(0,0,0,.9),
+    inset 10px 10px 40px rgba(14,165,233,.2),
+    0 0 40px rgba(14,165,233,.1);
+  position: relative;
+  flex-shrink: 0;
+  transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Volumetric Parallax Cloud Layer */
+.globe-clouds {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background-image: url("/aligned_clouds.png");
+  background-size: 200% 200%;
+  /* Removed 1.3x parallax to establish physical lock with underlying cartography */
+  background-position: var(--gx, 0%) 0%;
+  background-repeat: repeat-x;
+  mix-blend-mode: screen;
+  pointer-events: none;
+  z-index: 3;
+  /* Hide the clouds on the unlit side of the sphere to respect global lighting */
+  -webkit-mask-image: radial-gradient(circle at 35% 35%, black 40%, rgba(0,0,0,0.15) 80%, transparent 100%);
+  mask-image: radial-gradient(circle at 35% 35%, black 40%, rgba(0,0,0,0.15) 80%, transparent 100%);
+  transition: opacity 1s ease;
+}
+
+.globe:active {
+  cursor: grabbing;
+  transform: scale(0.97);
+}
+/* Dynamic Noise Texture mapped to cloud cover */
+.globe::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+  /* Cloud cover (0-100) scales the noise opacity from 0 to 0.75 */
+  opacity: calc(var(--cloud-pct, 0) * 0.0075);
+  pointer-events: none;
+  transition: opacity 2s ease;
+}
+
+/* Glass glare overlay */
+.globe::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 25%, rgba(255,255,255,.15), transparent 60%);
+  pointer-events: none;
+}
+
+/* ============================================================
+   3D Sun Globe — Interactive Photorealistic Star
+   ============================================================ */
+.sun-globe {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background-image: url("/realistic_sun.png");
+  background-size: 150%;
+  background-position: center center;
+  background-repeat: no-repeat;
+  box-shadow:
+    inset -25px -15px 50px rgba(0,0,0,.6),
+    inset 10px 10px 40px rgba(251,191,36,.5),
+    0 0 60px rgba(245,158,11,.4),
+    0 0 120px rgba(217,119,6,.2);
+  position: relative;
+  flex-shrink: 0;
+}
+.sun-globe::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 25%, rgba(255,255,255,.25), transparent 60%);
+  pointer-events: none;
+}
+
+/* ============================================================
+   Lava Lamp Fluid Thermodynamics (CSS/SVG Gooey Effect)
+   ============================================================ */
+.lava-container {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.85;
+}
+
+.lava-blob {
+  position: absolute;
+  mix-blend-mode: overlay;
+}
+
+@keyframes lava-rise {
+  0% {
+    transform: translateY(120%) scale(0.8) rotate(0deg);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateY(-20%) scale(1.4) rotate(90deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-150%) scale(0.6) rotate(180deg);
+    opacity: 0;
+  }
+}
+
+.tile--sienna::before {
+  display: none !important;
+}
+
+/* ============================================================
+   Cartesian Astrological Matrices (Graceful Trace Vectors)
+   ============================================================ */
+.draw-path,
+.constellation-label {
+  stroke-dasharray: 1500;
+  stroke-dashoffset: 1500;
+  animation: drawConstellation ease-in-out infinite;
+}
+
+@keyframes drawConstellation {
+  0% { stroke-dashoffset: 1500; opacity: 0; }
+  10% { opacity: 0.9; }
+  45% { stroke-dashoffset: 0; opacity: 0.9; }
+  55% { stroke-dashoffset: 0; opacity: 0; }
+  100% { stroke-dashoffset: 0; opacity: 0; }
+}
+
+.star-pulse {
+  animation: starPulse 4s alternate infinite;
+}
+
+@keyframes starPulse {
+  0% { opacity: 0.3; filter: drop-shadow(0 0 2px currentColor); }
+  100% { opacity: 1; filter: drop-shadow(0 0 10px currentColor); }
+}
+
+/* ============================================================
+   Kinetic Telemetry Chronometers
+   ============================================================ */
+.clock-time-anim {
+  animation: clockDigitFlip 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  transform-origin: bottom center;
+}
+
+@keyframes clockDigitFlip {
+  0% { transform: translateY(-8px) scale(1.1); opacity: 0; filter: blur(4px); }
+  100% { transform: translateY(0) scale(1); opacity: 1; filter: blur(0); }
+}
+
+/* ============================================================
+   @theme — Tailwind utility extensions
+   ============================================================ */
+@theme {
+  --font-family-mono:  "IBM Plex Mono", Menlo, Consolas, monospace;
+  --font-family-serif: "Playfair Display", Georgia, serif;
+  --font-family-body:  "Inter", system-ui, sans-serif;
+}
