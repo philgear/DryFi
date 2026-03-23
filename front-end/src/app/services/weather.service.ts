@@ -77,7 +77,7 @@ export class WeatherService {
       });
 
     if (!environment.IOT_ENDPOINT_URL.startsWith('http') || environment.IOT_KEY === 'fake-api-key') {
-      this.error.set("Interior telemetry offline: IOT_ENDPOINT_URL and IOT_KEY not configured in .env");
+      // Interior telemetry offline: silently skip if not configured
     } else {
       this.http.get<any>(`${environment.IOT_ENDPOINT_URL}/temperature?x-aio-key=${environment.IOT_KEY}`)
         .subscribe({

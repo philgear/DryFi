@@ -1,7 +1,10 @@
 import { Component, OnInit, signal, computed, OnDestroy } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { WeatherService } from './services/weather.service';
+// @ts-ignore
+import { SatelliteService } from './services/satellite.service';
 import { SolarService, computeSunPosition } from './services/solar.service';
+import { EphemerisService } from './services/ephemeris.service';
 import { CommonModule, DatePipe } from '@angular/common';
 import { environment } from '../environments/environment';
 
@@ -15,9 +18,9 @@ export interface ConstellationNode {
   stars: {x: number, y: number, r: number, color: string}[];
 }
 
-export const CONSTELLATION_MAP: ConstellationNode[] = [
+export const SATELLITE_ORBITS: ConstellationNode[] = [
   {
-    name: "Orion",
+    name: "Sentinel-1A (SAR)",
     path: "M -150,100 L -220,180 L -180,230 L -200,300 L -80,260 L -140,210 L -150,100",
     color: "rgba(45,212,191,0.5)",
     delay: 0,
@@ -34,7 +37,7 @@ export const CONSTELLATION_MAP: ConstellationNode[] = [
     ]
   },
   {
-    name: "Ursa Major",
+    name: "Landsat 9 (OLI)",
     path: "M 200,-300 L 260,-280 L 320,-250 L 350,-200 L 340,-150 L 420,-130 L 450,-200 L 350,-200", 
     color: "rgba(251,191,36,0.5)",
     delay: 4,
@@ -51,7 +54,7 @@ export const CONSTELLATION_MAP: ConstellationNode[] = [
     ]
   },
   {
-    name: "Cassiopeia",
+    name: "ICESat-2 (ATLAS)",
     path: "M -400,-300 L -340,-260 L -280,-330 L -230,-270 L -160,-320",
     color: "rgba(45,212,191,0.5)",
     delay: 8,
@@ -66,7 +69,7 @@ export const CONSTELLATION_MAP: ConstellationNode[] = [
     ]
   },
   {
-    name: "Cygnus",
+    name: "SMAP (Radar)",
     path: "M 50,-100 L 120,-50 L 150,20 M 80,-20 L 120,-50 L 180,-120", 
     color: "rgba(167,139,250,0.5)",
     delay: 12,
@@ -81,7 +84,7 @@ export const CONSTELLATION_MAP: ConstellationNode[] = [
     ]
   },
   {
-    name: "Scorpius",
+    name: "Copernicus DEM",
     path: "M 100,200 L 180,250 L 220,320 L 300,350 L 380,300 M 220,320 L 250,260",
     color: "rgba(251,113,133,0.5)",
     delay: 16,
@@ -108,7 +111,7 @@ export const CONSTELLATION_MAP: ConstellationNode[] = [
 export class App implements OnInit, OnDestroy {
   /** Expose Math so template attribute bindings can use it. */
   readonly Math = Math;
-  readonly constellations = CONSTELLATION_MAP;
+  readonly constellations = SATELLITE_ORBITS;
   isSearching = signal(false);
 
   // Globe interactivity state
@@ -126,31 +129,40 @@ export class App implements OnInit, OnDestroy {
   globeBgPosX = computed(() => (this.globeRotX() / 360) * 200);
   globeBgPosY = computed(() => (this.globeRotY() / 180) * 100);
 
-  /** Pinpoint Math: stick the GPS dot accurately to the sliding equirectangular map layer */
+  /** Pinpoint Math (Phase 12 GPS Precision): Lock GPS strictly to visible Astrolabe window */
   sitePinX = computed(() => {
-    // Math: The map is 200% the width of the container. 
-    // Container sees 180° at a time. The dot maps from 0 to 200%.
-    const imageDotPct = ((this.solarService.lon() + 180) / 360) * 200;
-    // Panning scrubs the map left based exactly on globeBgPosX().
-    let rawX = imageDotPct - this.globeBgPosX();
-    // Smooth endless wrapping to match background-repeat: repeat-x
-    rawX = ((rawX % 200) + 200) % 200;
-    return rawX;
+    // The globe is visually a hemisphere showing exactly 180 degrees of longitude.
+    // The visible center longitude is globeRotX.
+    // Left edge is globeRotX - 90. Right edge is globeRotX + 90.
+    const centerLon = this.globeRotX();
+    let deltaLon = this.solarService.lon() - centerLon;
+    
+    // Normalize shortest path
+    while (deltaLon > 180) deltaLon -= 360;
+    while (deltaLon < -180) deltaLon += 360;
+    
+    // Spherical Orthographic Projection (visually arcs the motion wrapping around the sphere)
+    // Using simple Sine arc mapping for hyper-realism: sin(angle)
+    const normalizedX = Math.sin(deltaLon * (Math.PI / 180));
+    return 50 + (normalizedX * 50);
   });
 
   sitePinY = computed(() => {
-    // Equirectangular Y mapping (90N to 90S over 100% height since we cropped Y)
-    // Wait, if map height is 200%, the image is double height, but container is 100%.
-    // Mapping 90 to -90 exactly:
-    return ((90 - this.solarService.lat()) / 180) * 100;
+    const lat = Math.max(-90, Math.min(90, this.solarService.lat()));
+    // Orthographic spherical mapping for the Y-axis:
+    const normalizedY = Math.sin(lat * (Math.PI / 180));
+    return 50 - (normalizedY * 50);
   });
 
   sitePinVisible = computed(() => {
-    // The Container width is exactly 100%. The image is 200% wide.
-    // If the dot's X wrapped coordinate is > 100%, it is physically behind the globe!
-    // We cull it to respect the 3D sphere illusion.
-    const x = this.sitePinX();
-    return x >= 0 && x <= 100;
+    // With orthographic spherical mapping, if the longitude delta falls geometrically outside 
+    // the 90 degree forward-facing hemisphere bounds, it is mathematically behind the planet.
+    const centerLon = this.globeRotX();
+    let deltaLon = this.solarService.lon() - centerLon;
+    while (deltaLon > 180) deltaLon -= 360;
+    while (deltaLon < -180) deltaLon += 360;
+    
+    return Math.abs(deltaLon) <= 90;
   });
 
   /** 
@@ -194,52 +206,290 @@ export class App implements OnInit, OnDestroy {
     return lst * 15;
   });
 
-  worldClocks = computed(() => {
+  insightHotspots = computed(() => {
     const now = this.currentTime();
     // Standard US 12-hour AM/PM Format applied universally
     const formatTime = (tz: string) => new Intl.DateTimeFormat('en-US', { timeZone: tz, hour: 'numeric', minute: '2-digit', hour12: true }).format(now);
 
     return [
-      // Top-Left (2x5 USA Grid)
-      // Row 1
-      { id: 'HNL', label: 'Honolulu', lat: 21.3069, lon: -157.8583, group: 'TL', time: formatTime('Pacific/Honolulu') },
-      { id: 'ANC', label: 'Anchorage', lat: 61.2181, lon: -149.9003, group: 'TL', time: formatTime('America/Anchorage') },
-      // Row 2
-      { id: 'LAX', label: 'Los Angeles', lat: 34.0522, lon: -118.2437, group: 'TL', time: formatTime('America/Los_Angeles') },
-      { id: 'DEN', label: 'Denver', lat: 39.7392, lon: -104.9903, group: 'TL', time: formatTime('America/Denver') },
-      // Row 3
-      { id: 'PHX', label: 'Phoenix', lat: 33.4484, lon: -112.0740, group: 'TL', time: formatTime('America/Phoenix') },
-      { id: 'ORD', label: 'Chicago', lat: 41.8781, lon: -87.6298, group: 'TL', time: formatTime('America/Chicago') },
-      // Row 4
-      { id: 'IAH', label: 'Houston', lat: 29.7604, lon: -95.3698, group: 'TL', time: formatTime('America/Chicago') },
-      { id: 'ATL', label: 'Atlanta', lat: 33.7490, lon: -84.3880, group: 'TL', time: formatTime('America/New_York') },
-      // Row 5
-      { id: 'NYC', label: 'New York', lat: 40.7128, lon: -74.0060, group: 'TL', time: formatTime('America/New_York') },
-      { id: 'MIA', label: 'Miami', lat: 25.7617, lon: -80.1918, group: 'TL', time: formatTime('America/New_York') },
+      // Alpine Glaciers (Tracking: Retreat & Snow Cover)
+      { id: 'CHX', label: 'Chamonix, FR', lat: 45.9237, lon: 6.8694, group: 'ALPINE', tz: 'Europe/Paris', time: formatTime('Europe/Paris') },
+      { id: 'ZRM', label: 'Zermatt, CH', lat: 46.0207, lon: 7.7491, group: 'ALPINE', tz: 'Europe/Zurich', time: formatTime('Europe/Zurich') },
+      { id: 'CRT', label: 'Cortina, IT', lat: 46.5405, lon: 12.1357, group: 'ALPINE', tz: 'Europe/Rome', time: formatTime('Europe/Rome') },
+      { id: 'INN', label: 'Innsbruck, AT', lat: 47.2692, lon: 11.4041, group: 'ALPINE', tz: 'Europe/Vienna', time: formatTime('Europe/Vienna') },
+      { id: 'WHS', label: 'Whistler, CA', lat: 50.1163, lon: -122.9574, group: 'ALPINE', tz: 'America/Vancouver', time: formatTime('America/Vancouver') },
+      { id: 'BNF', label: 'Banff, CA', lat: 51.1784, lon: -115.5708, group: 'ALPINE', tz: 'America/Edmonton', time: formatTime('America/Edmonton') },
+      { id: 'ASP', label: 'Aspen, US', lat: 39.1911, lon: -106.8175, group: 'ALPINE', tz: 'America/Denver', time: formatTime('America/Denver') },
+      { id: 'NIU', label: 'Niseko, JP', lat: 42.8048, lon: 140.6874, group: 'ALPINE', tz: 'Asia/Tokyo', time: formatTime('Asia/Tokyo') },
+      { id: 'QST', label: 'Queenstown, NZ', lat: -45.0312, lon: 168.6626, group: 'ALPINE', tz: 'Pacific/Auckland', time: formatTime('Pacific/Auckland') },
+
+      // Innovative Net-Zero Supply Chain (Tracking: Carbon Flux)
+      { id: 'RTM', label: 'Port of Rotterdam', lat: 51.9244, lon: 4.4777, group: 'SUPPLY_CHAIN', tz: 'Europe/Amsterdam', time: formatTime('Europe/Amsterdam') },
+      { id: 'SGP', label: 'Singapore Strait', lat: 1.3521, lon: 103.8198, group: 'SUPPLY_CHAIN', tz: 'Asia/Singapore', time: formatTime('Asia/Singapore') },
+      { id: 'PAN', label: 'Panama Canal', lat: 9.0800, lon: -79.6800, group: 'SUPPLY_CHAIN', tz: 'America/Panama', time: formatTime('America/Panama') },
+      { id: 'SUE', label: 'Suez Canal', lat: 30.5852, lon: 32.2654, group: 'SUPPLY_CHAIN', tz: 'Africa/Cairo', time: formatTime('Africa/Cairo') },
+      { id: 'PLA', label: 'Port of LA', lat: 33.7288, lon: -118.2620, group: 'SUPPLY_CHAIN', tz: 'America/Los_Angeles', time: formatTime('America/Los_Angeles') },
+      { id: 'SHG', label: 'Shanghai Port', lat: 31.2304, lon: 121.4737, group: 'SUPPLY_CHAIN', tz: 'Asia/Shanghai', time: formatTime('Asia/Shanghai') },
+      { id: 'HAM', label: 'Port of Hamburg', lat: 53.5511, lon: 9.9937, group: 'SUPPLY_CHAIN', tz: 'Europe/Berlin', time: formatTime('Europe/Berlin') },
+      { id: 'NWH', label: 'Nhava Sheva, IN', lat: 18.9493, lon: 72.9525, group: 'SUPPLY_CHAIN', tz: 'Asia/Kolkata', time: formatTime('Asia/Kolkata') },
+      { id: 'JEB', label: 'Jebel Ali, AE', lat: 24.9857, lon: 55.0273, group: 'SUPPLY_CHAIN', tz: 'Asia/Dubai', time: formatTime('Asia/Dubai') },
         
-      // Top-Right (Europe)
-      { id: 'LHR', label: 'London', lat: 51.5074, lon: -0.1278, group: 'TR', time: formatTime('Europe/London') },
-      { id: 'CDG', label: 'Paris', lat: 48.8566, lon: 2.3522, group: 'TR', time: formatTime('Europe/Paris') },
-        
-      // Bottom-Left (Middle East & Asia)
-      { id: 'DXB', label: 'Dubai', lat: 25.2048, lon: 55.2708, group: 'BL', time: formatTime('Asia/Dubai') },
-      { id: 'BOM', label: 'Mumbai', lat: 19.0760, lon: 72.8777, group: 'BL', time: formatTime('Asia/Kolkata') },
-        
-      // Bottom-Right (Asia & Oceania)
-      { id: 'TYO', label: 'Tokyo', lat: 35.6762, lon: 139.6503, group: 'BR', time: formatTime('Asia/Tokyo') },
-      { id: 'SYD', label: 'Sydney', lat: -33.8688, lon: 151.2093, group: 'BR', time: formatTime('Australia/Sydney') }
+      // Mangroves and Coastal Cities (Tracking: NDVI & Inundation)
+      { id: 'GYQ', label: 'Greater Guayaquil', lat: -2.1894, lon: -79.8891, group: 'MANGROVE', tz: 'America/Guayaquil', time: formatTime('America/Guayaquil') },
+      { id: 'SUN', label: 'Sundarbans, IN', lat: 21.9497, lon: 89.1833, group: 'MANGROVE', tz: 'Asia/Kolkata', time: formatTime('Asia/Kolkata') },
+      { id: 'EVG', label: 'Everglades, FL', lat: 25.2866, lon: -80.8987, group: 'MANGROVE', tz: 'America/New_York', time: formatTime('America/New_York') },
+      { id: 'MEK', label: 'Mekong Delta', lat: 10.0333, lon: 105.7833, group: 'MANGROVE', tz: 'Asia/Ho_Chi_Minh', time: formatTime('Asia/Ho_Chi_Minh') },
+      { id: 'JAK', label: 'Jakarta Bay, ID', lat: -6.2088, lon: 106.8456, group: 'MANGROVE', tz: 'Asia/Jakarta', time: formatTime('Asia/Jakarta') },
+      { id: 'DAK', label: 'Dakar Coast, SN', lat: 14.7167, lon: -17.4677, group: 'MANGROVE', tz: 'Africa/Dakar', time: formatTime('Africa/Dakar') },
+      { id: 'MIY', label: 'Miyako-jima, JP', lat: 24.8055, lon: 125.2811, group: 'MANGROVE', tz: 'Asia/Tokyo', time: formatTime('Asia/Tokyo') },
+      { id: 'MDV', label: 'Maldives Coastal', lat: 3.2028, lon: 73.2207, group: 'MANGROVE', tz: 'Indian/Maldives', time: formatTime('Indian/Maldives') },
+      { id: 'KIR', label: 'Kiribati Atolls', lat: -3.3704, lon: -168.7340, group: 'MANGROVE', tz: 'Pacific/Tarawa', time: formatTime('Pacific/Tarawa') }
     ];
   });
 
-  tlClocks = computed(() => this.worldClocks().filter(c => c.group === 'TL'));
-  trClocks = computed(() => this.worldClocks().filter(c => c.group === 'TR'));
-  blClocks = computed(() => this.worldClocks().filter(c => c.group === 'BL'));
-  brClocks = computed(() => this.worldClocks().filter(c => c.group === 'BR'));
+  // Typographical Background Low-Poly Mathematical Matrix for "Skyhook"
+  mastheadMesh = [
+    { pY: 50, a1: 0, a2: 0, a3: 0 },
+    { pY: 35, a1: 15, a2: -10, a3: 25 },
+    { pY: 60, a1: -20, a2: 15, a3: -35 },
+    { pY: 25, a1: 30, a2: -20, a3: 45 },
+    { pY: 70, a1: -25, a2: 20, a3: -40 },
+    { pY: 45, a1: 15, a2: -15, a3: 20 },
+    { pY: 55, a1: -10, a2: 10, a3: -15 }
+  ];
+
+  alpineHotspots = computed(() => this.insightHotspots().filter(c => c.group === 'ALPINE'));
+  supplyChainHotspots = computed(() => this.insightHotspots().filter(c => c.group === 'SUPPLY_CHAIN'));
+  mangroveHotspots = computed(() => this.insightHotspots().filter(c => c.group === 'MANGROVE'));
+
+  // Clock Quadrant Mapping for the UI
+  tlClocks = computed(() => this.alpineHotspots());
+  trClocks = computed(() => this.supplyChainHotspots());
+  blClocks = computed(() => this.mangroveHotspots().slice(0, Math.ceil(this.mangroveHotspots().length / 2)));
+  brClocks = computed(() => this.mangroveHotspots().slice(Math.ceil(this.mangroveHotspots().length / 2)));
+
+  // Dynamic Polar Coordinate Engine for "Fanning" the Quadrant Clocks
+  getFanStyle(quadrant: 'TL'|'TR'|'BL'|'BR'|'TR_REFLECT'|'BR_REFLECT'|'TL_REFLECT'|'BL_REFLECT', index: number, total: number): any {
+    // Escalate the sweeping progression across the quadrant indices
+    const progress = total > 1 ? index / (total - 1) : 0; 
+    
+    // Sweep the fan from 15 degrees to 75 degrees (creating a beautiful corner arc)
+    const sweepStart = 15;
+    const sweepEnd = 75;
+    const angleDeg = sweepStart + (progress * (sweepEnd - sweepStart));
+    const angleRad = angleDeg * (Math.PI / 180);
+    
+    // Touch the absolute corner (radius 0) and dynamically sprawl out with ample spacing!
+    const radius = 0 + (index * 65); 
+    
+    const dx = radius * Math.cos(angleRad);
+    const dy = radius * Math.sin(angleRad);
+
+    let left = 'auto', right = 'auto', top = 'auto', bottom = 'auto';
+
+    // Apply the absolute anchor offsets intrinsically using CSS calc!
+    if (quadrant === 'TL') { left = `calc(5.5rem + ${dx}px)`; top = `calc(3.5rem + ${dy}px)`; }
+    if (quadrant === 'TR') { right = `calc(5.5rem + ${dx}px)`; top = `calc(3.5rem + ${dy}px)`; }
+    if (quadrant === 'BL') { left = `calc(5.5rem + ${dx}px)`; bottom = `calc(3.5rem + ${dy}px)`; }
+    if (quadrant === 'BR') { right = `calc(5.5rem + ${dx}px)`; bottom = `calc(3.5rem + ${dy}px)`; }
+    
+    if (quadrant === 'TR_REFLECT') { right = `calc(5.5rem - ${dx}px)`; top = `calc(3.5rem + ${dy}px)`; }
+    if (quadrant === 'BR_REFLECT') { right = `calc(5.5rem - ${dx}px)`; bottom = `calc(3.5rem + ${dy}px)`; }
+    if (quadrant === 'TL_REFLECT') { left = `calc(5.5rem - ${dx}px)`; top = `calc(3.5rem + ${dy}px)`; }
+    if (quadrant === 'BL_REFLECT') { left = `calc(5.5rem - ${dx}px)`; bottom = `calc(3.5rem + ${dy}px)`; }
+
+    return { left, right, top, bottom };
+  }
+
+  activeHotspot = signal<any>(null);
+
+  /** Phase 10: Smooth Astrolabe Focus Logic */
+  galaxyZoom = signal<number>(1.0);
+  inverseZoom = computed(() => 1 / this.galaxyZoom());
+
+  onGalaxyScroll(event: WheelEvent) {
+    event.preventDefault(); // Suspend window scroll bleeding
+    this.galaxyZoom.update(z => {
+      let increment = event.deltaY < 0 ? 1.1 : 0.9;
+      return Math.max(0.5, Math.min(z * increment, 4.0)); // Strict physical depth floor and ceiling
+    });
+  }
+
+  teleportToHotspot(hotspot: any) {
+    this.activeHotspot.set(hotspot);
+    
+    // Compute what the local clock reads at this hotspot's IANA timezone
+    // so sun/moon/star/planet positions reflect that city's actual sky right now
+    const locationDate = hotspot.tz 
+      ? this.getLocalDateForTimezone(hotspot.tz)
+      : new Date();
+    
+    this.solarService.updateLocationAtTime(hotspot.lat, hotspot.lon, hotspot.label.toUpperCase(), locationDate);
+    this.weatherService.fetchData(hotspot.lat, hotspot.lon);
+    this.satService.fetchData(hotspot.lat, hotspot.lon);
+    
+    // Spin the 3D globe to center the selected longitude
+    this.globeRotX.set(hotspot.lon + 90);
+    
+    // Trigger automatic cinematic focal push on telemetry acquisition
+    this.galaxyZoom.set(1.6);
+  }
+
+  /** Derive a Date object representing the current moment in a given IANA timezone.
+   *  We can't change UTC time, but we CAN shift the Date used for solar calculations
+   *  to reflect that city's local hour/minute so the sun angle is correct for THERE. */
+  getLocalDateForTimezone(tz: string): Date {
+    try {
+      // Use Intl to find the UTC offset for this timezone right now
+      const now = new Date();
+      const formatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: tz,
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', second: '2-digit',
+        hour12: false
+      });
+      const parts = formatter.formatToParts(now);
+      const get = (t: string) => Number(parts.find(p => p.type === t)?.value ?? 0);
+      // Reconstruct as a UTC Date using the local wall-clock values
+      // This tricks SolarService into computing celestial positions for that local time
+      const localAsUtc = Date.UTC(
+        get('year'), get('month') - 1, get('day'),
+        get('hour'), get('minute'), get('second')
+      );
+      return new Date(localAsUtc);
+    } catch {
+      return new Date();
+    }
+  }
 
   teleportToClock(clock: any) {
-    this.solarService.updateLocation(clock.lat, clock.lon, clock.label.toUpperCase());
-    this.weatherService.fetchData(clock.lat, clock.lon);
+    this.teleportToHotspot(clock);
   }
+
+  // Remote Trigger Action Matrix Router
+  hoveredTile = signal<'ALBEDO' | 'NDVI' | 'CARBON' | null>(null);
+
+  eisenhowerMatrix = computed(() => {
+    const id = this.activeHotspot()?.id;
+    if (!id) return null;
+
+    const matrices: Record<string, any> = {
+      // --- ALPINE GLACIERS ---
+      'CHX': { do: "Dispatch emergency stabilization crews to the Argentière glacier seracs.", decide: "Approve budget for new Chamonix sub-surface thermodynamic sensors.", delegate: "Route daily visual albedo telemetry to the Grenoble deep-learning lab.", delete: "Discard legacy 1990s winter seasonal snowpack baseline models." },
+      'ZRM': { do: "Halt all commercial heli-skiing near the retreating Matterhorn permafrost.", decide: "Trigger Matterhorn rockfall preemptive geological warning systems.", delegate: "Automate Zermatt valley drone surface temperature mappings.", delete: "Cancel funding for low-altitude snowmaking machinery." },
+      'CRT': { do: "Reinforce Veneto region structural rock-netting ahead of predicted thaw.", decide: "Invest in Cortina basin atmospheric carbon scrubbing outposts.", delegate: "Assign optical spectral analysis to Italian regional universities.", delete: "Decommission static analog avalanche sensors." },
+      'INN': { do: "Reroute Tyrolean freight transit to minimize Alpine valley black soot.", decide: "Determine placement of next-gen Innsbruck orbital mirror reflectors.", delegate: "Crowdsource local albedo reports via mobile Austrian skiing apps.", delete: "Scrap reliance on localized micro-climate historicals." },
+      'WHS': { do: "Enforce strict logging bans around the Whistler-Blackcomb icefields.", decide: "Approve 4K satellite continuous monitoring of Coast Mountain melt runoff.", delegate: "Task local Canadian rangers with physical depth probe verification.", delete: "Ignore short-term La Niña localized temperature anomalies." },
+      'BNF': { do: "Activate emergency water conservation protocols downstream from Bow Glacier.", decide: "Draft new structural budgets for Banff aquifer preservation.", delegate: "Partner with Alberta AI labs for predictive glacier retreat models.", delete: "Abandon seasonal melt-rate comparisons older than 5 years." },
+      'ASP': { do: "Restrict combustion engines near Maroon Bells alpine tundra zones.", decide: "Lock in multi-state contingency plans for Colorado River source depletion.", delegate: "Automate Rocky Mountain albedo capture using geostationary data.", delete: "Deprioritize traditional high-altitude resort expansion plans." },
+      'NIU': { do: "Deploy volcanic ash mitigation shields across Mount Yotei glacier flanks.", decide: "Subsidize Hokkaido geothermal transitions to offset resort emissions.", delegate: "Sync Niseko local LiDAR drone fleets with orbital telemetry.", delete: "Stop planning around consistent 'Japow' historical snow-depth." },
+      'QST': { do: "Immediate halt of invasive species spread accelerating Southern Alps thaw.", decide: "Inject capital into Queenstown regional hydro-electric glacier buffers.", delegate: "Assign university teams to monitor Remarkables mountain albedo.", delete: "Remove archaic static topographical maps from the active database." },
+
+      // --- SUPPLY CHAIN & PORTS ---
+      'RTM': { do: "Mandate shoreside electrical power docking for all incoming super-freighters.", decide: "Approve massive hydrogen bunkering infrastructure at Maasvlakte.", delegate: "Automate Dutch autonomous barge logistics to slash port congestion.", delete: "Cancel permits for legacy heavy-fuel oil storage expansions." },
+      'SGP': { do: "Throttle maritime traffic in the Johore Strait to reduce sulfur pooling.", decide: "Greenlight multi-billion Tuas Megaport automated carbon-tracking.", delegate: "Deploy autonomous aquatic drones to monitor maritime bunker spills.", delete: "Ignore non-compliant vessels lacking real-time emissions broadcasting." },
+      'PAN': { do: "Enforce strict Neopanamax vessel draft limits against Gatun Lake levels.", decide: "Invest $5B in alternative freshwater saving basins for the locks.", delegate: "Task regional meteorologists with hyper-local watershed predictions.", delete: "Abandon previous continuous transit volume expectations." },
+      'SUE': { do: "Deploy sandstorm atmospheric scrubbers along the Bitter Lakes approach.", decide: "Approve secondary green-corridor bypass channel dredging budgets.", delegate: "Integrate Egyptian port authorities with global AIS optimization AI.", delete: "Stop allowing highly polluting vessels during peak congestion hours." },
+      'PLA': { do: "Eliminate all diesel drayage trucks operating in the San Pedro Bay complex.", decide: "Finalize total electrification grid for Long Beach heavy lifters.", delegate: "Partner with local AI startups to predict inbound vessel wait times.", delete: "Scrap conventional off-shore anchoring protocols causing idle smog." },
+      'SHG': { do: "Rotate Yangshan deep-water mega-ships to optimize cross-wind drag.", decide: "Integrate continuous 5G emissions monitoring across all active cranes.", delegate: "Automate localized smog warnings integrating Yangtze weather data.", delete: "Bypass regional reporting delays by relying on direct orbital satellite data." },
+      'HAM': { do: "Activate Elbe River tidal optimization software for deep draft entries.", decide: "Finance rapid transitions to Green Ammonia fueling at Altenwerder.", delegate: "Link German maritime traffic control directly to European space agency.", delete: "Delete analog paperwork processing for hazardous cargo tracking." },
+      'NWH': { do: "Immediate halt on expansion into adjacent coastal mangrove ecosystems.", decide: "Build critical multi-modal electrified rail links to bypass local trucks.", delegate: "Automate container triage for essential zero-emission cargo first.", delete: "Reject incoming vessels failing international low-sulfur mandates." },
+      'JEB': { do: "Shield active open-air terminal workers during extreme UV/Heat indices.", decide: "Approve massive solar-shade canopy construction over Jafza storage.", delegate: "Sync Dubai customs clearing with maritime predictive arrival AI.", delete: "Discard unoptimized docking queues causing excess marine idling." },
+
+      // --- MANGROVE & COASTAL ---
+      'GYQ': { do: "Deploy immediate anti-erosion bio-barriers to the Guayas River delta.", decide: "Relocate vulnerable coastal populations in high-risk inundation paths.", delegate: "Assign automated drone reforestation protocols across the Gulf.", delete: "Stop authorizing commercial shrimp farming in primary mangrove zones." },
+      'SUN': { do: "Erect immediate tidal surge warnings for active cyclonic formations.", decide: "Invest heavily in bio-engineered super-mangrove root matrices.", delegate: "Crowdsource Ganges delta wildlife tracking to assess ecosystem health.", delete: "Abandon reliance on concrete seawalls sinking in the active mud flats." },
+      'EVG': { do: "Halt all freshwater diversion out of the central River of Grass.", decide: "Commit $10B to elevate the Tamiami Trail and restore tidal flow.", delegate: "Deploy Florida panther and biomass thermal tracking satellites.", delete: "Cancel encroaching urban development permits on the eastern ridge." },
+      'MEK': { do: "Throttle upstream dam operators to maintain critical delta sediment flow.", decide: "Subsidize Vietnamese rice farmers transitioning to brackish aquaculture.", delegate: "Automate salinity intrusion mapping across the entire river basin.", delete: "Stop relying on historical seasonal monsoon precipitation curves." },
+      'JAK': { do: "Ban completely all unauthorized deep groundwater extraction across the city.", decide: "Accelerate the massive Garuda Sea Wall integration with natural mangroves.", delegate: "Use geospatial AI to predict urban subsidence vector pathways.", delete: "Stop issuing permits in the northern coastal floodplains." },
+      'DAK': { do: "Reinforce the Senegalese coastal road against immediate Atlantic swells.", decide: "Fund the Great Green Wall extension down into the coastal aquifers.", delegate: "Equip local fishing fleets with oceanographic data collection sensors.", delete: "Scrap short-term sandbagging logistics in favor of natural vegetation." },
+      'MIY': { do: "Harden coral reef restoration scaffolding around the Miyako strait.", decide: "Approve budgets for typhoon-resistant underwater mesh infrastructures.", delegate: "Set autonomous Japanese gliders to monitor ocean acidification.", delete: "Ignore marginal sea-level rise data; prepare for extreme storm surges." },
+      'MDV': { do: "Evacuate non-essential personnel from lowest lying outer atolls.", decide: "Greenlight floating city modular construction and tethering anchors.", delegate: "Deploy Indian Ocean tsunami and swell predictive neural networks.", delete: "Abandon all traditional foundation building practices below 2 meters." },
+      'KIR': { do: "Initiate immediate freshwater rationing due to saltwater lens intrusion.", decide: "Finalize international climate refugee diplomatic relocation treaties.", delegate: "Sync Pacific Ring orbital telemetry to predict king-tide impacts.", delete: "Delete outdated 20th-century mean sea level logistical models." }
+    };
+
+    return matrices[id] || {
+      do: "Commence immediate orbital alignment and sensor recalibration.",
+      decide: "Determine optimal geometric bounding box for future telemetry mapping.",
+      delegate: "Assign continuous ping verification to secondary processing arrays.",
+      delete: "Purge all unsynchronized historical caching from the active buffer."
+    };
+  });
+
+  // Active Satellite Payload Mappers
+  albedo_val = computed(() => this.satService.metrics().albedoIndex);
+  ndviStr = computed(() => this.satService.metrics().ndviBuffer.toFixed(2));
+  ndvi_val = computed(() => this.satService.metrics().ndviBuffer);
+  carbon_val = computed(() => this.satService.metrics().carbonFlux);
+
+  // Dynamic Thematic Background Interpolations
+  albedoBg = computed(() => {
+    const pct = Math.max(0, Math.min(100, this.albedo_val()));
+    return `var(--weave), linear-gradient(145deg, color-mix(in srgb, transparent ${pct}%, #1f1209), color-mix(in srgb, transparent ${pct}%, var(--klee-sienna))), url('/optimal_glacier.png')`;
+  });
+
+  ndviBg = computed(() => {
+    const pct = Math.max(0, Math.min(100, this.ndvi_val() * 100));
+    return `var(--weave), linear-gradient(145deg, color-mix(in srgb, transparent ${pct}%, #04101e), color-mix(in srgb, transparent ${pct}%, var(--klee-slate))), url('/optimal_mangrove.png')`;
+  });
+
+  carbonBg = computed(() => {
+    const flux = this.carbon_val() || 50;
+    const cleanPct = Math.max(0, Math.min(100, 100 - ((flux - 20) / 100) * 100)); // 20g = 100% clean, 120g = 0% clean
+    return `var(--weave), linear-gradient(145deg, color-mix(in srgb, transparent ${cleanPct}%, #2e1201), color-mix(in srgb, transparent ${cleanPct}%, var(--klee-amber))), url('/optimal_corridor.png')`;
+  });
+
+  // Native Spherical Astronomy translation of geocentric RA/Dec to Local Apparent Azimuth
+  private computePlanetaryAzimuth(raDeg: number, decDeg: number, lstDeg: number, latDeg: number): number {
+    const DEG = Math.PI / 180;
+    const RAD = 180 / Math.PI;
+    
+    // Hour Angle (LST - Right Ascension)
+    const ha = (lstDeg - raDeg) * DEG;
+    const decl = decDeg * DEG;
+    const lat = latDeg * DEG;
+
+    const cosZenith = Math.sin(lat) * Math.sin(decl) + Math.cos(lat) * Math.cos(decl) * Math.cos(ha);
+    const zenithRad = Math.acos(Math.max(-1, Math.min(1, cosZenith)));
+
+    if (zenithRad === 0) return 0; // Zenith point singularity check
+
+    const sinAz = -Math.sin(ha) * Math.cos(decl) / Math.sin(zenithRad);
+    const cosAz = (Math.sin(lat) * Math.cos(zenithRad) - Math.sin(decl)) / (Math.cos(lat) * Math.sin(zenithRad));
+
+    return (Math.atan2(sinAz, -cosAz) * RAD + 180) % 360;
+  }
+
+  // Complete Planetary Ephemeris Array (Native JPL Horizons Mode)
+  planetNodes = computed(() => {
+    const coordsMap = this.ephemerisService.planetCoords();
+    const lstDeg = this.siderealRotation();
+    const latDeg = this.solarService.lat();
+
+    // Baseline structural sizing utilizing realistic radius proportions and 4K SVG texture wrappers
+    const basePlanets = [
+      { name: 'MERCURY', defaultAz: 0, orbitRadius: 90, size: 2.5, color: 'url(#tex-mercury)' },
+      { name: 'VENUS', defaultAz: 45, orbitRadius: 110, size: 4.5, color: 'url(#tex-venus)' },
+      { name: 'MARS', defaultAz: 90, orbitRadius: 130, size: 3.5, color: 'url(#tex-mars)' },
+      { name: 'JUPITER', defaultAz: 135, orbitRadius: 160, size: 12, color: 'url(#tex-jupiter)' },
+      { name: 'SATURN', defaultAz: 180, orbitRadius: 190, size: 10, color: 'url(#tex-saturn)' },
+      { name: 'URANUS', defaultAz: 225, orbitRadius: 220, size: 6.5, color: 'url(#tex-uranus)' },
+      { name: 'NEPTUNE', defaultAz: 270, orbitRadius: 250, size: 6.5, color: 'url(#tex-neptune)' },
+      { name: 'PLUTO', defaultAz: 315, orbitRadius: 280, size: 1.5, color: 'url(#tex-pluto)' }
+    ];
+
+    return basePlanets.map(p => {
+      let azimuth = p.defaultAz;
+      // Re-map natively matching coordinate projection when NASA streams connect
+      if (this.ephemerisService.loadedStatus()) {
+        const coords = coordsMap.get(p.name);
+        if (coords) {
+          azimuth = this.computePlanetaryAzimuth(coords.ra, coords.dec, lstDeg, latDeg);
+        }
+      }
+      return { ...p, azimuth };
+    });
+  });
 
   // Physical Geometric Forecast Plotters
   forecastNodes = computed(() => {
@@ -324,10 +574,13 @@ export class App implements OnInit, OnDestroy {
   constructor(
     public weatherService: WeatherService,
     public solarService: SolarService,
+    public satService: SatelliteService,
+    public ephemerisService: EphemerisService
   ) {}
 
   ngOnInit() {
     this.weatherService.fetchData();
+    this.satService.fetchData(this.solarService.lat(), this.solarService.lon());
     this.startGlobeAnimation();
     setInterval(() => this.currentTime.set(new Date()), 60000); // Ticking 1m Chronometer
   }
@@ -395,12 +648,18 @@ export class App implements OnInit, OnDestroy {
     const rectX = event.clientX - rect.left;
     const rectY = event.clientY - rect.top;
 
-    const p = this.globeRotX();
-    let image_x = (rectX + 1.8 * p) % 360;
-    if (image_x < 0) image_x += 360;
+    // Convert raw pixel offset back to geographic matrices
+    const globeW = target.offsetWidth;
+    const globeH = target.offsetHeight;
     
-    const clickLon = image_x - 180;
-    const clickLat = 90 - (rectY / 180) * 90;
+    // The globe background spans 360° horizontally across the full container width.
+    // globeRotX drives the CSS background-position, so the visible left edge longitude is (globeRotX - 180).
+    let clickLon = (this.globeRotX() + (rectX / globeW) * 360 - 180) % 360;
+    while (clickLon <= -180) clickLon += 360;
+    while (clickLon > 180) clickLon -= 360;
+
+    // Map container height to [-90, 90] and clamp to guard against clicks outside the element
+    const clickLat = Math.max(-90, Math.min(90, 90 - (rectY / globeH) * 180));
 
     try {
       this.isSearching.set(true);
@@ -414,6 +673,17 @@ export class App implements OnInit, OnDestroy {
       
       this.solarService.updateLocation(clickLat, clickLon, locName.toUpperCase());
       this.weatherService.fetchData(clickLat, clickLon);
+      this.satService.fetchData(clickLat, clickLon);
+
+      // Synthesize a runtime generic hotspot to wake the Eisenhower Matrix out of STANDBY
+      this.activeHotspot.set({
+        id: 'MAP',
+        label: locName.toUpperCase(),
+        lat: clickLat,
+        lon: clickLon,
+        group: 'GLOBAL',
+        time: 'SYNCED'
+      });
       
     } catch (e) {
       console.error("Globe Telemetry Sync Error", e);

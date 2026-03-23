@@ -1,0 +1,9 @@
+{
+  "/api/horizons.api": {
+    "target": "https://ssd.jpl.nasa.gov",
+    "secure": true,
+    "changeOrigin": true,
+    "logLevel": "info"
+  }
+}
+

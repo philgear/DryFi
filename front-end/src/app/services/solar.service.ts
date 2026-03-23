@@ -389,6 +389,14 @@ export class SolarService implements OnDestroy {
     this.#tick();
   }
 
+  /** Update location AND compute celestial positions for a specific local time (e.g. a selected city's wall clock) */
+  public updateLocationAtTime(lat: number, lon: number, name: string, date: Date): void {
+    this.lat.set(lat);
+    this.lon.set(lon);
+    this.locationName.set(name);
+    this.#tickAt(date);
+  }
+
   /**
    * Detect potential solar bias in the external temperature sensor.
    * Returns the estimated bias in °F (0 if not applicable).
@@ -401,7 +409,11 @@ export class SolarService implements OnDestroy {
 
   #tick(): void {
     const now = new Date();
-    const pos = computeSunPosition(now, this.lat(), this.lon());
+    this.#tickAt(now);
+  }
+
+  #tickAt(date: Date): void {
+    const pos = computeSunPosition(date, this.lat(), this.lon());
     const ghi = estimateGHI(pos.elevationDeg);
     const uvi = ghiToUvIndex(ghi);
 
@@ -410,14 +422,14 @@ export class SolarService implements OnDestroy {
     this.uvIndex.set(uvi);
     this.uvRisk.set(uvIndexToRisk(uvi));
 
-    // Moon phase
-    const moon = computeMoonPhase(now);
+    // Moon phase uses actual Now (phase doesn't change per location)
+    const moon = computeMoonPhase(date);
     this.moonPhase.set(moon.phase);
     this.moonPhaseName.set(moon.name);
     this.moonIllumination.set(moon.illumination);
 
-    // Only recompute solar day once per minute
-    this.solarDay.set(this.#computeDay(now));
+    // Recompute solar day for this location + date
+    this.solarDay.set(this.#computeDay(date));
   }
 
   #computeDay(d: Date): SolarDay {

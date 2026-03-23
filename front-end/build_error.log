@@ -1,0 +1,14 @@
+﻿
+> front-end@0.0.0 prebuild
+> node generate-env.js
+
+[dotenv@17.3.1] injecting env (6) from .env -- tip: 🔐 prevent committing .env to code: https://dotenvx.com/precommit
+environment.ts generated successfully from .env
+
+> front-end@0.0.0 build
+> ng build
+
+[33m❯[39m Building...
+[32m✔[39m Building...
+Application bundle generation failed. [3.862 seconds] - 2026-03-23T02:41:59.030Z
+

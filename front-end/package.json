@@ -8,6 +8,7 @@
     "start": "ng serve --port 4300",
     "prebuild": "node generate-env.js",
     "build": "ng build",
+    "preview": "kill-port 4300 && npm run build && ng serve --configuration production --port 4300",
     "watch": "node generate-env.js && ng build --watch --configuration development",
     "test": "ng test"
   },
