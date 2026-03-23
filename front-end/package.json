@@ -1,37 +1,41 @@
 {
-  "name": "create-react-app_",
-  "version": "0.1.0",
-  "private": true,
-  "dependencies": {
-    "@fortawesome/fontawesome-svg-core": "^1.2.25",
-    "@fortawesome/free-solid-svg-icons": "^5.11.2",
-    "@fortawesome/react-fontawesome": "^0.1.5",
-    "chart.js": "^2.8.0",
-    "react": "^16.8.6",
-    "react-chartjs-2": "^2.8.0",
-    "react-dom": "^16.8.6",
-    "react-router-dom": "^5.1.2",
-    "react-scripts": "3.0.1"
-  },
+  "name": "front-end",
+  "version": "0.0.0",
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "ng": "ng",
+    "dev": "kill-port 4300 && npm start",
+    "prestart": "node generate-env.js",
+    "start": "ng serve --port 4300",
+    "prebuild": "node generate-env.js",
+    "build": "ng build",
+    "watch": "node generate-env.js && ng build --watch --configuration development",
+    "test": "ng test"
   },
-  "eslintConfig": {
-    "extends": "react-app"
+  "private": true,
+  "packageManager": "npm@11.9.0",
+  "dependencies": {
+    "@angular/common": "^21.2.0",
+    "@angular/compiler": "^21.2.0",
+    "@angular/core": "^21.2.0",
+    "@angular/forms": "^21.2.0",
+    "@angular/platform-browser": "^21.2.0",
+    "@angular/router": "^21.2.0",
+    "chart.js": "^4.5.1",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0"
   },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
+  "devDependencies": {
+    "@angular/build": "^21.2.3",
+    "@angular/cli": "^21.2.3",
+    "@angular/compiler-cli": "^21.2.0",
+    "autoprefixer": "^10.4.27",
+    "dotenv": "^17.3.1",
+    "jsdom": "^28.0.0",
+    "kill-port": "^2.0.1",
+    "postcss": "^8.5.8",
+    "prettier": "^3.8.1",
+    "tailwindcss": "^4.2.2",
+    "typescript": "~5.9.2",
+    "vitest": "^4.0.8"
   }
 }
