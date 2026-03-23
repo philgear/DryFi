@@ -258,9 +258,9 @@ export class App implements OnInit, OnDestroy {
     { pY: 55, a1: -10, a2: 10, a3: -15 }
   ];
 
-  alpineHotspots = computed(() => this.insightHotspots().filter(c => c.group === 'ALPINE'));
-  supplyChainHotspots = computed(() => this.insightHotspots().filter(c => c.group === 'SUPPLY_CHAIN'));
-  mangroveHotspots = computed(() => this.insightHotspots().filter(c => c.group === 'MANGROVE'));
+  alpineHotspots = computed(() => this.insightHotspots().filter((c: {group: string}) => c.group === 'ALPINE'));
+  supplyChainHotspots = computed(() => this.insightHotspots().filter((c: {group: string}) => c.group === 'SUPPLY_CHAIN'));
+  mangroveHotspots = computed(() => this.insightHotspots().filter((c: {group: string}) => c.group === 'MANGROVE'));
 
   // Clock Quadrant Mapping for the UI
   tlClocks = computed(() => this.alpineHotspots());
@@ -309,7 +309,7 @@ export class App implements OnInit, OnDestroy {
 
   onGalaxyScroll(event: WheelEvent) {
     event.preventDefault(); // Suspend window scroll bleeding
-    this.galaxyZoom.update(z => {
+    this.galaxyZoom.update((z: number) => {
       let increment = event.deltaY < 0 ? 1.1 : 0.9;
       return Math.max(0.5, Math.min(z * increment, 4.0)); // Strict physical depth floor and ceiling
     });
@@ -494,7 +494,7 @@ export class App implements OnInit, OnDestroy {
   // Physical Geometric Forecast Plotters
   forecastNodes = computed(() => {
     const nodes = this.weatherService.forecastArray();
-    return nodes.map(node => ({
+    return nodes.map((node: any) => ({
       ...node,
       azimuth: computeSunPosition(node.dt, this.solarService.lat(), this.solarService.lon()).azimuthDeg
     }));
@@ -550,7 +550,7 @@ export class App implements OnInit, OnDestroy {
     this.isSearching.set(true);
     // Explicit API routing internally maps via weather service matrix
     this.weatherService.geocode(query).subscribe({
-      next: (res) => {
+      next: (res: any) => {
         this.isSearching.set(false);
         if (res && res.length > 0) {
           // Resolves City/String payloads
@@ -627,10 +627,10 @@ export class App implements OnInit, OnDestroy {
     this.lastMouseY = currentY;
 
     // Adjust sensitivity: 0.5 degrees per pixel
-    this.globeRotX.update(v => v - deltaX * 0.5);
+    this.globeRotX.update((v: number) => v - deltaX * 0.5);
     
     // Clamp Y rotation to avoid spinning over the poles
-    this.globeRotY.update(v => {
+    this.globeRotY.update((v: number) => {
       let newY = v - deltaY * 0.5;
       return Math.max(-45, Math.min(45, newY));
     });
@@ -696,9 +696,9 @@ export class App implements OnInit, OnDestroy {
     const tick = () => {
       // Auto-spin if not hovered and not spinning
       if (!this.globeHovered() && !this.isGlobeDragging) {
-        this.globeRotX.update(v => v + this.autoSpinSpeed);
+        this.globeRotX.update((v: number) => v + this.autoSpinSpeed);
         // Slowly return Y back to equator (0)
-        this.globeRotY.update(v => {
+        this.globeRotY.update((v: number) => {
           if (Math.abs(v) < 0.1) return 0;
           return v * 0.98;
         });
@@ -739,6 +739,7 @@ export class App implements OnInit, OnDestroy {
       case 'High':      return 'bg-orange-400';
       case 'Very High': return 'bg-red-500';
       case 'Extreme':   return 'bg-violet-500';
+      default:          return 'bg-slate-400';
     }
   }
 
@@ -749,6 +750,7 @@ export class App implements OnInit, OnDestroy {
       case 'High':      return 'text-orange-400';
       case 'Very High': return 'text-red-500';
       case 'Extreme':   return 'text-violet-500';
+      default:          return 'text-slate-400';
     }
   }
 
