@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "com.cesium.unity": "1.12.0",
+    "com.unity.render-pipelines.universal": "14.0.11"
+  },
+  "scopedRegistries": [
+    {
+      "name": "Cesium",
+      "url": "https://registry.npmjs.org/",
+      "scopes": [
+        "com.cesium.unity"
+      ]
+    }
+  ]
+}

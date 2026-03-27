@@ -9,7 +9,10 @@ export const environment = {
   OPEN_WEATHER_KEY: '${process.env.OPEN_WEATHER_KEY || '1184879409d98b72caf17821169093c9'}',
   SITE_LAT: ${process.env.SITE_LAT || 45.5},
   SITE_LON: ${process.env.SITE_LON || -122.64},
-  SITE_ELEVATION_M: ${process.env.SITE_ELEVATION_M || 50}
+  SITE_ELEVATION_M: ${process.env.SITE_ELEVATION_M || 50},
+  GOOGLE_MAPS_API_KEY: '${process.env.GOOGLE_MAPS_API_KEY || ''}',
+  NASA_API_KEY: '${process.env.NASA_API_KEY || ''}',
+  APP_PIN: '${process.env.APP_PIN || '1234'}'
 };
 `;
 
@@ -23,7 +26,10 @@ export const environment = {
   OPEN_WEATHER_KEY: '${process.env.OPEN_WEATHER_KEY || '1184879409d98b72caf17821169093c9'}',
   SITE_LAT: ${process.env.SITE_LAT || 45.5},
   SITE_LON: ${process.env.SITE_LON || -122.64},
-  SITE_ELEVATION_M: ${process.env.SITE_ELEVATION_M || 50}
+  SITE_ELEVATION_M: ${process.env.SITE_ELEVATION_M || 50},
+  GOOGLE_MAPS_API_KEY: '${process.env.GOOGLE_MAPS_API_KEY || ''}',
+  NASA_API_KEY: '${process.env.NASA_API_KEY || ''}',
+  APP_PIN: '${process.env.APP_PIN || '1234'}'
 };
 `;
 

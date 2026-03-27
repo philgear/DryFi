@@ -5,7 +5,7 @@
     "ng": "ng",
     "dev": "kill-port 4300 && npm start",
     "prestart": "node generate-env.js",
-    "start": "ng serve --port 4300",
+    "start": "kill-port 4300 && ng serve --port 4300",
     "prebuild": "node generate-env.js",
     "build": "ng build",
     "preview": "kill-port 4300 && npm run build && ng serve --configuration production --port 4300",
@@ -21,6 +21,10 @@
     "@angular/forms": "^21.2.0",
     "@angular/platform-browser": "^21.2.0",
     "@angular/router": "^21.2.0",
+    "@deck.gl/core": "^9.2.11",
+    "@deck.gl/geo-layers": "^9.2.11",
+    "@deck.gl/layers": "^9.2.11",
+    "@loaders.gl/3d-tiles": "^4.3.4",
     "chart.js": "^4.5.1",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0"
@@ -35,6 +39,7 @@
     "kill-port": "^2.0.1",
     "postcss": "^8.5.8",
     "prettier": "^3.8.1",
+    "sharp": "^0.34.5",
     "tailwindcss": "^4.2.2",
     "typescript": "~5.9.2",
     "vitest": "^4.0.8"

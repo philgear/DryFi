@@ -1,0 +1,97 @@
+
+/* ══════════════════════════════════════════════════════════════════
+   WORLD CLOCK CAROUSEL — DYNAMIC READABILITY STATES
+   All clocks always scrollable and readable; selected expands inline
+   ══════════════════════════════════════════════════════════════════ */
+
+/* Default card — compact but readable at all times */
+.world-clock-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  min-width: 74px;
+  max-width: 74px;
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 0.3s ease,
+    min-width 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+    max-width 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+    transform 0.25s ease,
+    box-shadow 0.3s ease;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+/* Non-selected when a selection is active — dimmed but still scrollable */
+.world-clock-btn.clock-hidden {
+  opacity: 0.45;
+  min-width: 58px;
+  max-width: 58px;
+  transform: scale(0.94) translateY(2px);
+  filter: saturate(0.5) brightness(0.75);
+}
+
+/* Hovered non-selected — peek back to full */
+.world-clock-btn.clock-hidden:hover {
+  opacity: 0.75;
+  transform: scale(0.97) translateY(0);
+  filter: saturate(0.8) brightness(0.9);
+}
+
+/* Selected card — expanded to show full destination detail */
+.world-clock-btn.clock-selected {
+  min-width: 120px;
+  max-width: 120px;
+  opacity: 1;
+  transform: translateY(-3px);
+  filter: none;
+  border-radius: 6px;
+}
+
+/* Selected inner content — show extra info */
+.world-clock-btn.clock-selected .karp-tooltip {
+  /* Keep tooltip hidden on selected — use chevron pointer instead */
+  display: none;
+}
+
+/* Label: always visible, ellipsis on dim, full on selected */
+.world-clock-btn .clock-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  transition: max-width 0.3s ease;
+}
+.world-clock-btn.clock-selected .clock-label {
+  max-width: 120px;
+  white-space: normal;
+  line-height: 1.3;
+}
+
+/* Flag image — always visible, scales up on selected */
+.world-clock-btn img[src*="flagcdn"] {
+  transition: width 0.3s ease, border-radius 0.3s ease;
+}
+.world-clock-btn.clock-selected img[src*="flagcdn"] {
+  width: 28px !important;
+  border-radius: 3px !important;
+}
+
+/* Time display — always visible */
+.world-clock-btn .clock-time,
+.world-clock-btn .skyhook-live {
+  white-space: nowrap;
+}
+
+/* Shimmer keyframe on time update */
+@keyframes clock-tick-shimmer {
+  0%   { opacity: 1; }
+  15%  { opacity: 0.6; filter: brightness(1.4); }
+  30%  { opacity: 1; }
+}
+.world-clock-btn .skyhook-live {
+  animation: none;
+}
+/* Angular will toggle the class to re-trigger on signal change */

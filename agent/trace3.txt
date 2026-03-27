@@ -1,0 +1,1 @@
+{"error":"Error: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent: [400 Bad Request] Tool use with a response mime type: 'application/json' is unsupported"}

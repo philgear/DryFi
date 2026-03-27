@@ -1,11 +1,18 @@
 @import "tailwindcss";
+/* ══════════════════════════════════════════════════════════════════
+   SKYHOOK MONO — Variable Typeface System
+   Powered by JetBrains Mono Variable (wght 100–800)
+   Identity: precision-engineered monospace for telemetry interfaces
+   ══════════════════════════════════════════════════════════════════ */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
 
 @theme {
-  --font-family-mono:  "IBM Plex Mono", Menlo, Consolas, monospace;
+  --font-family-mono:  "Skyhook Mono", "JetBrains Mono", "IBM Plex Mono", Menlo, Consolas, monospace;
   --font-family-serif: "SkyhookMono-Bold", "Playfair Display", Georgia, serif;
   --font-family-body:  "Inter", system-ui, sans-serif;
 }
 
+/* ── Original SkyhookMono-Bold (static, used for masthead logotype) ── */
 @font-face {
     font-family: "SkyhookMono-Bold";
     src: url("./fonts/845cdaaebaaa52014acf4d1221846afb.eot");
@@ -16,6 +23,22 @@
          url("./fonts/845cdaaebaaa52014acf4d1221846afb.svg#SkyhookMono-Bold") format("svg");
     font-weight: normal;
     font-style: normal;
+    font-display: swap;
+}
+
+/* ── Skyhook Mono: aliases JetBrains Mono Variable across all weights ── */
+@font-face {
+    font-family: "Skyhook Mono";
+    src: local("JetBrains Mono");
+    font-weight: 100 800;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: "Skyhook Mono";
+    src: local("JetBrains Mono");
+    font-weight: 100 800;
+    font-style: italic;
     font-display: swap;
 }
 
@@ -61,10 +84,37 @@
   --sig-warn:   #fb923c;
   --sig-err:    #f87171;
 
-  /* Typography */
+  /* ── Typography ── */
   --font-serif: "SkyhookMono-Bold", "Playfair Display", "Georgia", serif;
-  --font-mono:  "IBM Plex Mono", Menlo, Consolas, monospace;
+  --font-mono:  "Skyhook Mono", "JetBrains Mono", "IBM Plex Mono", Menlo, Consolas, monospace;
   --font-body:  "Inter", system-ui, sans-serif;
+
+  /* ── Skyhook Mono: Variable Axes defaults ── */
+  --skyhook-wght:       400;   /* font-weight axis: 100–800 */
+  --skyhook-wght-bold:  700;
+  --skyhook-wght-dim:   300;
+  --skyhook-wght-data:  500;   /* metric readouts */
+  --skyhook-wght-label: 400;   /* section labels */
+  --skyhook-wght-hero:  800;   /* large telemetry values */
+
+  /* ── Fluid Type Scale (base 16px → rem) ── */
+  --type-2xs:   0.55rem;   /* 8.8px  — badge captions */
+  --type-xs:    0.65rem;   /* 10.4px — system labels */
+  --type-sm:    0.75rem;   /* 12px   — secondary labels */
+  --type-base:  0.875rem;  /* 14px   — body / tile copy */
+  --type-md:    1rem;      /* 16px   — subheadings */
+  --type-lg:    1.25rem;   /* 20px   — tile headings */
+  --type-xl:    1.75rem;   /* 28px   — section titles */
+  --type-2xl:   2.5rem;    /* 40px   — primary metrics */
+  --type-3xl:   3.5rem;    /* 56px   — hero value readouts */
+  --type-4xl:   4.5rem;    /* 72px   — masthead / feature */
+
+  /* ── Skyhook Mono letter-spacing tokens ── */
+  --ls-tight:   -0.02em;
+  --ls-normal:  0;
+  --ls-wide:    0.08em;
+  --ls-wider:   0.14em;
+  --ls-widest:  0.22em;   /* TELEMETRY LABEL TRACKING */
 
   /* Tile texture — subtle linen weave */
   --weave: url("data:image/svg+xml,%3Csvg viewBox='0 0 8 8' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='1' height='8' fill='rgba(0,0,0,.06)'/%3E%3Crect y='0' width='8' height='1' fill='rgba(0,0,0,.06)'/%3E%3C/svg%3E");
@@ -123,15 +173,12 @@ body {
   padding: 1.5rem;
   min-height: 160px;
   
-  /* Phase 11 Glassmorphism Minimalism */
+  /* Pure Transparency — Direct Map Overlay */
   border-radius: 28px;
-  background-color: rgba(15, 23, 42, 0.55);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 
-    inset 0 1px 1px rgba(255, 255, 255, 0.05), 
-    0 10px 40px rgba(0, 0, 0, 0.6);
+  background-color: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  opacity: 0.8;
 }
 
 .tile:hover { filter: brightness(1.2) contrast(1.1); }
@@ -736,6 +783,14 @@ body {
   100% { stroke-dashoffset: 0; opacity: 0; }
 }
 
+.twinkle-star {
+  animation: starPulse 2.5s alternate infinite ease-in-out;
+}
+.twinkle-star:nth-child(even) { animation-delay: 0.5s; animation-duration: 3s; }
+.twinkle-star:nth-child(3n) { animation-delay: 1.2s; animation-duration: 2.2s; }
+.twinkle-star:nth-child(5n) { animation-delay: 2.1s; animation-duration: 3.8s; }
+.twinkle-star:nth-child(7n) { animation-delay: 0.8s; animation-duration: 2.7s; }
+
 .star-pulse {
   animation: starPulse 4s alternate infinite;
 }
@@ -770,4 +825,837 @@ body {
   0% { opacity: 0; transform: scale(0.95); }
   50% { opacity: 0.8; transform: scale(1.05); }
   100% { opacity: 0; transform: scale(0.95); }
+}
+
+/* =======================================================================
+   DYNAMIC DESTINATION THEMING SYSTEM
+   Activated via data-theme on <body> based on activeHotspot group
+   ======================================================================= */
+
+/* ── ALPINE THEME ─────────────────────────────────────────── */
+body[data-theme="alpine"] {
+  --klee-gold: #a8d8f0;
+  --klee-teal-lt: #7ec8e3;
+  --klee-amber-lt: #b8e4f9;
+  --sig-live: #64c8e8;
+  --klee-sienna: #ef4444;
+  background: linear-gradient(175deg, #060c1a 0%, #0a1628 40%, #0d1e38 70%, #061528 100%);
+  transition: background 0.9s ease;
+}
+body[data-theme="alpine"]::before {
+  content: '';
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 1;
+  background:
+    /* Aurora Borealis curtain — upper sweep */
+    radial-gradient(ellipse 140% 35% at 50% -5%,  rgba(56,189,248,0.12) 0%, transparent 55%),
+    radial-gradient(ellipse 80%  25% at 20% -2%,  rgba(139,92,246,0.09) 0%, transparent 45%),
+    radial-gradient(ellipse 70%  20% at 80%  0%,  rgba(20,184,166,0.08) 0%, transparent 40%),
+    radial-gradient(ellipse 50%  15% at 35%  5%,  rgba(34,211,238,0.07) 0%, transparent 35%),
+    /* Snow field glow at base */
+    radial-gradient(ellipse 120% 30% at 50% 100%, rgba(186,230,253,0.06) 0%, transparent 50%),
+    /* Mountain silhouette vignette */
+    linear-gradient(180deg, transparent 40%, rgba(5,15,35,0.6) 100%);
+}
+body[data-theme="alpine"] .masthead {
+  background: linear-gradient(180deg, rgba(6,15,35,0.98) 0%, rgba(8,20,45,0.95) 100%);
+  border-bottom-color: rgba(120,180,240,0.2);
+}
+
+/* ── FREIGHT / CONTAINER PORT AERIAL ─────────────────────────── */
+/* Palette from bird's-eye satellite: tarmac grey, ISO container primaries,
+   crane orange, high-vis yellow, port lighting flood-white             */
+body[data-theme="freight"] {
+  --klee-gold:      #ca8a04;   /* container yellow (Hapag-Lloyd / MSC) */
+  --klee-sienna:    #991b1b;   /* deep container red (Maersk red hulls) */
+  --klee-teal:      #1e3a5f;   /* deep-water channel between berths */
+  --klee-slate:     #111827;   /* tarmac apron shadow */
+  --klee-slate-dk:  #060911;   /* night yard under sodium lamps */
+  --klee-violet:    #1d4ed8;   /* container blue (CMA-CGM / Evergreen) */
+  --klee-amber:     #f97316;   /* gantry crane orange */
+  --klee-ink:       #0a0d0f;   /* terminal hardstanding black */
+  --klee-linen:     #fef9c3;   /* port floodlight spill */
+  --klee-gold-lt:   #fde047;   /* hi-vis yellow safety paint */
+  --klee-sienna-lt: #f87171;   /* container red lit face */
+  --klee-teal-lt:   #38bdf8;   /* channel buoy cyan */
+  --klee-slate-lt:  #94a3b8;   /* painted tarmac lane marking */
+  --klee-violet-lt: #93c5fd;   /* blue container sun-lit top */
+  --klee-amber-lt:  #fdba74;   /* crane cab warm glow */
+  --sig-live:       #4ade80;   /* green status light on terminal ops board */
+  --klee-linen-dk:  #292524;   /* tarmac under overcast */
+  background:
+    /* Container grid pattern — evokes rows of stacked TEUs from above */
+    repeating-linear-gradient(
+      90deg,
+      transparent 0px,
+      transparent 18px,
+      rgba(255,255,255,0.015) 18px,
+      rgba(255,255,255,0.015) 20px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent 0px,
+      transparent 10px,
+      rgba(255,255,255,0.01) 10px,
+      rgba(255,255,255,0.01) 12px
+    ),
+    linear-gradient(170deg, #0d1117 0%, #111827 30%, #0f172a 60%, #0a0f1a 100%);
+  transition: background 0.9s ease;
+}
+body[data-theme="freight"]::before {
+  content: '';
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 1;
+  background:
+    /* Upper-left floodlight tower — amber sodium glow */
+    radial-gradient(ellipse 50% 60% at 8%  10%,  rgba(249,115,22,0.14) 0%, transparent 55%),
+    /* Upper-right tower — warm amber */
+    radial-gradient(ellipse 45% 55% at 92% 12%,  rgba(202,138,4,0.12)  0%, transparent 50%),
+    /* Mid tower left */
+    radial-gradient(ellipse 35% 45% at 15% 50%,  rgba(234,179,8,0.08)  0%, transparent 45%),
+    /* Mid tower right */
+    radial-gradient(ellipse 35% 45% at 85% 48%,  rgba(249,115,22,0.08) 0%, transparent 45%),
+    /* Container blue wash — Evergreen/CMA rows */
+    radial-gradient(ellipse 80% 40% at 50% 100%, rgba(29,78,216,0.09)  0%, transparent 55%),
+    /* Subtle tarmac grid highlight along horizon */
+    linear-gradient(0deg, rgba(17,24,39,0.7) 0%, transparent 30%);
+}
+body[data-theme="freight"] .masthead {
+  background: linear-gradient(180deg, rgba(10,13,15,0.98) 0%, rgba(17,24,39,0.96) 100%);
+  border-bottom-color: rgba(202,138,4,0.25);
+}
+
+/* ── MANGROVE / COASTAL THEME ─────────────────────────────── */
+body[data-theme="mangrove"] {
+  --klee-gold: #34d399;
+  --klee-teal-lt: #2dd4bf;
+  --klee-amber-lt: #6ee7b7;
+  --sig-live: #10b981;
+  --klee-sienna: #f87171;
+  background: linear-gradient(175deg, #020c0f 0%, #041414 40%, #061c1c 70%, #031010 100%);
+  transition: background 0.9s ease;
+}
+body[data-theme="mangrove"]::before {
+  content: '';
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 1;
+  background:
+    /* Bioluminescent tidal edge glow — lower surface */
+    radial-gradient(ellipse 120% 25% at 50% 100%, rgba(16,185,129,0.12) 0%, transparent 50%),
+    /* Left canopy depth — morning light through roots */
+    radial-gradient(ellipse 55% 70% at -5% 50%,  rgba(6,78,59,0.25)   0%, transparent 55%),
+    /* Right canopy mirror */
+    radial-gradient(ellipse 55% 70% at 105% 50%, rgba(6,78,59,0.2)    0%, transparent 50%),
+    /* Tropical sky zenith — teal atmosphere */
+    radial-gradient(ellipse 100% 40% at 50% 0%,  rgba(4,120,87,0.08)  0%, transparent 45%),
+    /* Deep water channel shimmer */
+    radial-gradient(ellipse 60%  20% at 30% 80%, rgba(20,184,166,0.07) 0%, transparent 40%),
+    radial-gradient(ellipse 50%  15% at 70% 85%, rgba(52,211,153,0.06) 0%, transparent 35%),
+    /* Ground shadow */
+    linear-gradient(180deg, transparent 30%, rgba(2,10,8,0.7) 100%);
+}
+body[data-theme="mangrove"] .masthead {
+  background: linear-gradient(180deg, rgba(2,10,10,0.98) 0%, rgba(4,16,15,0.95) 100%);
+  border-bottom-color: rgba(0,180,140,0.2);
+}
+
+/* ── Smooth accent color transitions on theme switch ─────── */
+:root, body {
+  transition:
+    --klee-gold 0.9s ease,
+    background 0.9s ease;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   IMAGE-INSPIRED THEME PALETTES
+   Palettes sampled from: alpine_mountain.webp, mangroves.webp, realistic_sun.webp
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── ALPINE GLACIER: icy peaks, crystalline slate, cold cerulean ── */
+[data-theme="alpine"] {
+  --canvas:         #05111e;
+  --klee-gold:      #4a9ebe;   /* glacial melt blue — replaces ochre */
+  --klee-sienna:    #1a4a6e;   /* deep ice core */
+  --klee-teal:      #0c3d57;   /* frozen lake under compression */
+  --klee-slate:     #071c2e;   /* near-midnight ice field */
+  --klee-slate-dk:  #030d17;   /* polar deep shadow */
+  --klee-violet:    #12355a;   /* alpine dusk */
+  --klee-amber:     #2d6f93;   /* cold sunray on snow */
+  --klee-ink:       #040e18;   /* black ice */
+  --klee-linen:     #c8e8f5;   /* fresh powder white */
+  --klee-gold-lt:   #bae6fd;   /* ice crystal highlight */
+  --klee-sienna-lt: #7dd3fc;   /* alpine sky */
+  --klee-teal-lt:   #a8e0f7;   /* meltwater shimmer */
+  --klee-slate-lt:  #e0f2fe;   /* snowfield bright */
+  --klee-violet-lt: #bfdbfe;   /* twilight on glacier */
+  --klee-amber-lt:  #cbd5e1;   /* ice fog diffusion */
+  --klee-glacier:   #082f49;
+  --klee-glacier-lt:#bae6fd;
+
+  /* Masthead & border accent: glacial blue-white */
+  --sig-live:       #38bdf8;
+  --klee-linen-dk:  #0f3558;
+}
+
+/* ── MANGROVE COAST: deep emerald, root-dark teal, bioluminescent glow ── */
+[data-theme="mangrove"] {
+  --canvas:         #030f0a;
+  --klee-gold:      #10b981;   /* bioluminescent mangrove green */
+  --klee-sienna:    #065f46;   /* deep root shadow */
+  --klee-teal:      #047857;   /* submerged mangrove water */
+  --klee-slate:     #022c22;   /* black mangrove mud */
+  --klee-slate-dk:  #010f0c;   /* tideline abyss */
+  --klee-violet:    #064e3b;   /* canopy depth */
+  --klee-amber:     #059669;   /* sunlit leaf tip */
+  --klee-ink:       #010f09;   /* mangrove night */
+  --klee-linen:     #a7f3d0;   /* new-growth frond */
+  --klee-gold-lt:   #6ee7b7;   /* bioluminescence */
+  --klee-sienna-lt: #34d399;   /* coastal foam green */
+  --klee-teal-lt:   #6ee7b7;   /* shallow-water shimmer */
+  --klee-slate-lt:  #a7f3d0;   /* morning mist over estuary */
+  --klee-violet-lt: #d1fae5;   /* mangrove canopy highlight */
+  --klee-amber-lt:  #c6f0dd;   /* filtered light on water */
+  --klee-mangrove:  #064e3b;
+  --klee-mangrove-lt:#6ee7b7;
+
+  --sig-live:       #34d399;
+  --klee-linen-dk:  #064e3b;
+}
+
+/* ── FREIGHT / SUPPLY CHAIN: ocean steel, deep water indigo, cargo amber ── */
+[data-theme="freight"] {
+  --canvas:         #060c14;
+  --klee-gold:      #d97706;   /* container crane amber */
+  --klee-sienna:    #92400e;   /* rust hull */
+  --klee-teal:      #155e75;   /* deep channel water */
+  --klee-slate:     #0c2a3a;   /* open ocean slate */
+  --klee-slate-dk:  #04111c;   /* midnight shipping lane */
+  --klee-violet:    #1e3a5f;   /* twilight over port */
+  --klee-amber:     #b45309;   /* warning beacon amber */
+  --klee-ink:       #050b14;   /* ship hull shadow */
+  --klee-linen:     #fde68a;   /* portside floodlight */
+  --klee-gold-lt:   #fbbf24;   /* cargo beacon gold */
+  --klee-sienna-lt: #fb923c;   /* port warning orange */
+  --klee-teal-lt:   #67e8f9;   /* ocean topography aqua */
+  --klee-slate-lt:  #7dd3fc;   /* channel buoy lit */
+  --klee-violet-lt: #bfdbfe;   /* radar sweep blue */
+  --klee-amber-lt:  #fde68a;   /* anchorage floodlight */
+
+  --sig-live:       #f59e0b;
+  --klee-linen-dk:  #451a03;
+}
+
+body[data-theme="freight"] {
+  background-color: var(--canvas);
+  background-image: 
+    linear-gradient(to bottom, rgba(4,17,28,0.85), rgba(6,12,20,0.95)),
+    repeating-linear-gradient(90deg, rgba(21,94,117,0.06) 0px, rgba(21,94,117,0.06) 1px, transparent 1px, transparent 40px),
+    repeating-linear-gradient(0deg, rgba(21,94,117,0.06) 0px, rgba(21,94,117,0.06) 1px, transparent 1px, transparent 40px),
+    repeating-linear-gradient(45deg, rgba(217,119,6,0.04) 0px, rgba(217,119,6,0.04) 2px, transparent 2px, transparent 15px),
+    radial-gradient(ellipse at 80% 20%, rgba(21,94,117,0.2) 0%, transparent 50%),
+    radial-gradient(ellipse at 20% 80%, rgba(146,64,14,0.15) 0%, transparent 50%);
+  background-attachment: fixed;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   SKYHOOK MONO UTILITY CLASSES
+   Variable axis animations for interactive telemetry elements
+   ══════════════════════════════════════════════════════════════════ */
+
+/* Base: all --font-mono elements automatically use Skyhook Mono */
+[style*="font-family:var(--font-mono)"],
+[style*="font-family: var(--font-mono)"],
+.font-mono {
+  font-family: var(--font-mono);
+  font-variation-settings: "wght" var(--skyhook-wght, 400);
+  transition: font-variation-settings 0.25s ease, letter-spacing 0.2s ease;
+}
+
+/* Tile metric hero values — bold, wider tracking */
+.tile-value,
+[class*="tile-value"] {
+  font-family: var(--font-mono);
+  font-weight: var(--skyhook-wght-hero);
+  font-variation-settings: "wght" 800;
+  letter-spacing: var(--ls-tight);
+  font-size: var(--type-3xl);
+}
+
+/* Tile titles — scaled up from previous sizes */
+.tile-title {
+  font-family: var(--font-mono);
+  font-weight: var(--skyhook-wght-data);
+  font-variation-settings: "wght" 500;
+  font-size: var(--type-md);
+  letter-spacing: var(--ls-wider);
+  text-transform: uppercase;
+}
+
+/* Tile unit labels */
+.tile-unit {
+  font-family: var(--font-mono);
+  font-size: var(--type-sm);
+  font-variation-settings: "wght" 300;
+  letter-spacing: var(--ls-wide);
+  opacity: 0.65;
+}
+
+/* Section / category labels (UPPERCASE mono) */
+.skyhook-label {
+  font-family: var(--font-mono);
+  font-size: var(--type-xs);
+  font-variation-settings: "wght" 600;
+  letter-spacing: var(--ls-widest);
+  text-transform: uppercase;
+}
+
+/* Animated glow on live data elements */
+.skyhook-live {
+  font-family: var(--font-mono);
+  font-variation-settings: "wght" 700;
+  text-shadow:
+    0 0 12px rgba(45, 212, 191, 0.6),
+    0 0 24px rgba(45, 212, 191, 0.25);
+  transition: font-variation-settings 0.3s ease, text-shadow 0.3s ease;
+}
+.skyhook-live:hover {
+  font-variation-settings: "wght" 800;
+  text-shadow:
+    0 0 16px rgba(45, 212, 191, 0.9),
+    0 0 40px rgba(45, 212, 191, 0.4);
+}
+
+/* World clock time display — increased size */
+.world-clock-btn .clock-time,
+.world-clock-btn [class*="font-size:0.85rem"] {
+  font-variation-settings: "wght" 700;
+}
+
+/* Interactive buttons: weight pops on hover */
+button[class*="world-clock-btn"]:hover,
+button.world-clock-btn:hover {
+  font-variation-settings: "wght" 700;
+}
+
+/* Bump up global tile label font sizes */
+/* Previous baseline was 0.55rem / 0.4rem — now 0.65rem / 0.5rem */
+/* Applied via --type-xs and --type-2xs above */
+
+/* Masthead / logotype — maximum weight */
+.masthead h1,
+.masthead .site-title {
+  font-family: var(--font-serif);
+  letter-spacing: var(--ls-tight);
+}
+
+/* ── Skyhook Mono: responsive clamp scale for hero metrics ── */
+.skyhook-hero {
+  font-family: var(--font-mono);
+  font-size: clamp(2rem, 5vw, var(--type-4xl));
+  font-variation-settings: "wght" 800;
+  letter-spacing: var(--ls-tight);
+  line-height: 0.95;
+}
+
+.skyhook-metric {
+  font-family: var(--font-mono);
+  font-size: clamp(1.5rem, 3.5vw, var(--type-3xl));
+  font-variation-settings: "wght" 700;
+  letter-spacing: var(--ls-tight);
+}
+
+.skyhook-sub {
+  font-family: var(--font-mono);
+  font-size: clamp(0.65rem, 1vw, var(--type-sm));
+  font-variation-settings: "wght" 400;
+  letter-spacing: var(--ls-widest);
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+/* Dim state (inactive / secondary data) */
+.skyhook-dim {
+  font-variation-settings: "wght" 300;
+  opacity: 0.45;
+}
+
+/* Animated weight pulse — for live updating values */
+@keyframes skyhook-pulse-weight {
+  0%, 100% { font-variation-settings: "wght" 400; }
+  50%       { font-variation-settings: "wght" 700; }
+}
+.skyhook-pulse {
+  animation: skyhook-pulse-weight 2s ease-in-out infinite;
+}
+
+/* ============================================================
+   ACCUTRON TOGGLE SYSTEM (Hardware UI aesthetic)
+   ============================================================ */
+.accutron-bar {
+  background: #03060a;
+  border-radius: 8px;
+  padding: 6px;
+  box-shadow: 
+    inset 0 4px 12px rgba(0,0,0,0.8),
+    inset 0 0 0 1px rgba(255,255,255,0.05),
+    0 1px 1px rgba(255,255,255,0.1),
+    0 12px 30px rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.accutron-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.3);
+  padding: 0 16px;
+  height: 38px;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  border: none;
+  outline: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.accutron-btn:hover {
+  background: rgba(255,255,255,0.03);
+  color: rgba(255,255,255,0.6);
+}
+
+.accutron-btn.active {
+  background: linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.02) 100%);
+  color: #fff;
+  box-shadow: 
+    inset 0 2px 0 rgba(255,255,255,0.15),
+    inset 0 0 0 1px rgba(255,255,255,0.05),
+    0 4px 6px rgba(0,0,0,0.4);
+}
+
+/* Hardware Neon Diode */
+.accutron-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #000;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.9), 0 1px 0 rgba(255,255,255,0.1);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+/* Inner filament */
+.accutron-dot::after {
+  content: '';
+  position: absolute;
+  top: 2px; left: 2px; right: 2px; bottom: 2px;
+  border-radius: 50%;
+  background: transparent;
+  transition: all 0.4s ease;
+}
+
+.accutron-btn.active.color-magenta .accutron-dot { background: #d946ef; box-shadow: 0 0 10px rgba(217,70,239,0.8), inset 0 0 2px #fff; }
+.accutron-btn.active.color-amber .accutron-dot { background: #fbbf24; box-shadow: 0 0 10px rgba(251,191,36,0.8), inset 0 0 2px #fff; }
+.accutron-btn.active.color-violet .accutron-dot { background: #a78bfa; box-shadow: 0 0 10px rgba(167,139,250,0.8), inset 0 0 2px #fff; }
+.accutron-btn.active.color-sky .accutron-dot { background: #38bdf8; box-shadow: 0 0 10px rgba(56,189,248,0.8), inset 0 0 2px #fff; }
+.accutron-btn.active.color-emerald .accutron-dot { background: #34d399; box-shadow: 0 0 10px rgba(52,211,153,0.8), inset 0 0 2px #fff; }
+.accutron-btn.active.color-teal .accutron-dot { background: #2dd4bf; box-shadow: 0 0 10px rgba(45,212,191,0.8), inset 0 0 2px #fff; }
+.accutron-btn.active.color-rose .accutron-dot { background: #fb7185; box-shadow: 0 0 10px rgba(251,113,133,0.8), inset 0 0 2px #fff; }
+
+/* Dashboard Global Background Map Injection (Moved to app.html) */
+
+/* ══════════════════════════════════════════════════════════════════
+   PER-THEME MASTHEAD & BODY BACKGROUND IMAGES (from public/ WebPs)
+   Images are overlaid beneath the polynomial gradient layers
+   ══════════════════════════════════════════════════════════════════ */
+
+/* Alpine — alpine_mountain.webp: snow peaks texture behind Aurora curtains */
+body[data-theme="alpine"]::before {
+  background-image: url('/alpine_mountain.webp');
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+  mix-blend-mode: luminosity;
+  opacity: 0.12;
+}
+
+/* Freight — realistic_sun.webp: sodium floodlight / port sun wash */
+body[data-theme="freight"]::before {
+  background-image: url('/realistic_sun.webp');
+  background-size: 60% auto;
+  background-position: 80% 20%;
+  background-repeat: no-repeat;
+  mix-blend-mode: overlay;
+  opacity: 0.18;
+}
+
+/* Mangrove — mangroves.webp: bioluminescent canopy depth layer */
+body[data-theme="mangrove"]::before {
+  background-image: url('/mangroves.webp');
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  mix-blend-mode: luminosity;
+  opacity: 0.14;
+}
+
+/* Masthead themed image accent strip */
+.masthead {
+  position: relative;
+  overflow: hidden;
+}
+.masthead::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0;
+  background-size: cover;
+  background-position: center;
+  transition: opacity 1s ease, background-image 0.5s ease;
+  mix-blend-mode: soft-light;
+}
+body[data-theme="alpine"] .masthead::after {
+  background-image: url('/alpine_mountain.webp');
+  opacity: 0.22;
+}
+body[data-theme="freight"] .masthead::after {
+  background-image: url('/realistic_sun.webp');
+  background-size: 120% auto;
+  background-position: 60% 30%;
+  opacity: 0.28;
+}
+body[data-theme="mangrove"] .masthead::after {
+  background-image: url('/mangroves.webp');
+  opacity: 0.20;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   FREIGHT DOCK SCENE — animated portal cranes, cables, water
+   ══════════════════════════════════════════════════════════════════ */
+
+.freight-dock-scene {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 240px;
+  pointer-events: none;
+  z-index: 0;
+  mix-blend-mode: screen;
+  opacity: 0.55;
+}
+
+/* Trolley traversal — moves along the boom */
+@keyframes dock-trolley-traverse {
+  0%   { transform: translateX(0); }
+  45%  { transform: translateX(60px); }
+  55%  { transform: translateX(60px); }
+  100% { transform: translateX(0); }
+}
+
+/* Cable hoist — lifts/lowers the hook */
+@keyframes dock-cable-hoist {
+  0%   { transform: translateY(0) translateX(0); }
+  30%  { transform: translateY(-30px) translateX(0); }
+  45%  { transform: translateY(-30px) translateX(60px); }
+  70%  { transform: translateY(20px)  translateX(60px); }
+  85%  { transform: translateY(20px)  translateX(60px); }
+  100% { transform: translateY(0)     translateX(0); }
+}
+
+/* Cable 2 — slightly different phase */
+@keyframes dock-cable-hoist-2 {
+  0%   { transform: translateY(10px) translateX(40px); }
+  40%  { transform: translateY(-20px) translateX(40px); }
+  60%  { transform: translateY(-20px) translateX(-30px); }
+  80%  { transform: translateY(15px)  translateX(-30px); }
+  100% { transform: translateY(10px)  translateX(40px); }
+}
+
+@keyframes dock-cable-hoist-3 {
+  0%   { transform: translateY(0) translateX(-40px); }
+  35%  { transform: translateY(-25px) translateX(-40px); }
+  55%  { transform: translateY(-25px) translateX(25px); }
+  75%  { transform: translateY(18px)  translateX(25px); }
+  100% { transform: translateY(0)     translateX(-40px); }
+}
+
+/* Water shimmer — horizontal drift */
+@keyframes dock-water-drift {
+  0%   { transform: translateX(0);     opacity: 0.5; }
+  50%  { transform: translateX(18px);  opacity: 1; }
+  100% { transform: translateX(0);     opacity: 0.5; }
+}
+
+/* Floodlight pulse — amber glow throb */
+@keyframes dock-light-glow {
+  0%, 100% { opacity: 0.5; r: 5; filter: blur(1px); }
+  50%       { opacity: 1;   r: 8; filter: blur(3px); }
+}
+
+/* Apply animations */
+.dock-trolley-1 { animation: dock-trolley-traverse 14s ease-in-out infinite; }
+.dock-trolley-2 { animation: dock-trolley-traverse 18s ease-in-out infinite reverse; }
+.dock-trolley-3 { animation: dock-trolley-traverse 11s ease-in-out infinite; animation-delay: -4s; }
+
+.dock-cable-1 { animation: dock-cable-hoist    14s ease-in-out infinite; }
+.dock-cable-2 { animation: dock-cable-hoist-2  18s ease-in-out infinite; }
+.dock-cable-3 { animation: dock-cable-hoist-3  11s ease-in-out infinite; animation-delay: -4s; }
+
+.dock-water-shimmer line {
+  animation: dock-water-drift 6s ease-in-out infinite;
+}
+.dock-water-shimmer line:nth-child(2) { animation-duration: 8s; animation-delay: -2s; }
+.dock-water-shimmer line:nth-child(3) { animation-duration: 7s; animation-delay: -1s; }
+.dock-water-shimmer line:nth-child(4) { animation-duration: 9s; animation-delay: -3s; }
+
+.dock-light-pulse {
+  animation: dock-light-glow 3s ease-in-out infinite;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   SPECTROSCOPIC ATTENTION SYSTEM
+   Maps visible-light wavelengths to cognitive attention tiers.
+   Components consume --λ-* variables; themes override them.
+
+   λ-ambient     ~420nm  violet/indigo    background glow, passive presence
+   λ-data        ~490nm  cyan/teal        read-only telemetry, data tiles
+   λ-health      ~530nm  green            status OK, live indicators
+   λ-interactive ~580nm  amber/gold       hover targets, primary actions
+   λ-alert       ~625nm  orange-red       warnings, out-of-range values
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── BASE TOKENS (default / no theme) ───────────────────────────────── */
+:root {
+  --λ-ambient:      rgba(139, 92, 246, 0.6);   /* violet  ~420nm */
+  --λ-data:         rgba(45, 212, 191, 0.8);   /* cyan    ~490nm */
+  --λ-health:       rgba(52, 211, 153, 0.9);   /* green   ~530nm */
+  --λ-interactive:  rgba(251, 191, 36, 0.9);   /* amber   ~580nm */
+  --λ-alert:        rgba(244, 63, 94, 1.0);    /* rose    ~625nm */
+
+  /* Glow intensities */
+  --λ-glow-sm:  8px;
+  --λ-glow-md:  16px;
+  --λ-glow-lg:  28px;
+
+  /* Transition timing */
+  --λ-trans: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── ALPINE THEME: violet-blue ice → rose-gold peaks → crimson danger ── */
+body[data-theme="alpine"] {
+  --λ-ambient:      rgba(147, 197, 253, 0.55);  /* ice-blue    ~450nm */
+  --λ-data:         rgba(165, 243, 252, 0.80);  /* glacier-cyan ~480nm */
+  --λ-health:       rgba(134, 239, 172, 0.90);  /* snow-green  ~530nm */
+  --λ-interactive:  rgba(251, 191, 36,  0.95);  /* alpine-gold ~580nm */
+  --λ-alert:        rgba(244, 63,  94,  1.00);  /* crimson     ~620nm */
+}
+
+/* ── FREIGHT THEME: deep-navy → sodium-amber → hazard-red ───────────── */
+body[data-theme="freight"] {
+  --λ-ambient:      rgba(30,  58,  95,  0.70);  /* port-navy   ~440nm */
+  --λ-data:         rgba(45, 212, 191,  0.80);  /* AIS-teal    ~490nm */
+  --λ-health:       rgba(34, 197, 94,   0.90);  /* clearance-grn ~535nm */
+  --λ-interactive:  rgba(255, 180, 30,  0.95);  /* sodium-lamp  ~589nm */
+  --λ-alert:        rgba(239, 68,  68,  1.00);  /* hazard-red  ~630nm */
+}
+
+/* ── MANGROVE THEME: deep-ocean → bioluminescent-teal → coral-reef ──── */
+body[data-theme="mangrove"] {
+  --λ-ambient:      rgba(6,   78,  59,  0.55);  /* deep-ocean  ~450nm */
+  --λ-data:         rgba(0,  255, 200,  0.70);  /* bioluminescent ~495nm */
+  --λ-health:       rgba(52, 211, 153,  0.90);  /* mangrove-grn ~530nm */
+  --λ-interactive:  rgba(250, 176, 5,   0.95);  /* pollen-amber ~577nm */
+  --λ-alert:        rgba(249, 115, 22,  1.00);  /* coral-orange ~605nm */
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   COMPONENT WIRING — All interactive zones consume λ variables
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── Tiles: ambient glow at rest → interactive on hover ─────────────── */
+.tile {
+  border: 1px solid var(--λ-ambient);
+  box-shadow:
+    0 10px 40px rgba(0,0,0,0.3),
+    0 0 var(--λ-glow-sm) color-mix(in srgb, var(--λ-ambient) 40%, transparent);
+  transition:
+    border-color var(--λ-trans),
+    box-shadow var(--λ-trans),
+    filter var(--λ-trans);
+}
+
+.tile:hover {
+  border-color: var(--λ-interactive);
+  box-shadow:
+    0 16px 48px rgba(0,0,0,0.4),
+    0 0 var(--λ-glow-md) color-mix(in srgb, var(--λ-interactive) 55%, transparent),
+    inset 0 0 var(--λ-glow-sm) color-mix(in srgb, var(--λ-interactive) 15%, transparent);
+  filter: brightness(1.08) contrast(1.06);
+}
+
+/* ── Sig-dots: use spectroscopic health / alert colours ─────────────── */
+.sig-dot--live {
+  background: var(--λ-health) !important;
+  box-shadow: 0 0 6px var(--λ-health);
+}
+.sig-dot--err, .sig-dot--warn {
+  background: var(--λ-alert) !important;
+  box-shadow: 0 0 6px var(--λ-alert);
+}
+
+/* ── World clock buttons ─────────────────────────────────────────────── */
+.world-clock-btn:hover {
+  box-shadow: 0 0 10px color-mix(in srgb, var(--λ-interactive) 50%, transparent);
+  border-color: color-mix(in srgb, var(--λ-interactive) 70%, transparent) !important;
+}
+.world-clock-btn.clock-selected {
+  box-shadow:
+    0 0 var(--λ-glow-md) color-mix(in srgb, var(--λ-interactive) 60%, transparent) !important;
+  border-right-color: var(--λ-interactive) !important;
+}
+.world-clock-btn.clock-hidden {
+  border-color: color-mix(in srgb, var(--λ-ambient) 30%, transparent) !important;
+}
+
+/* ── Masthead / toolbar interactive buttons ──────────────────────────── */
+.masthead button {
+  transition:
+    border-color var(--λ-trans),
+    color var(--λ-trans),
+    box-shadow var(--λ-trans);
+}
+.masthead button:hover {
+  border-color: var(--λ-interactive) !important;
+  color: var(--λ-interactive) !important;
+  box-shadow: 0 0 var(--λ-glow-sm) color-mix(in srgb, var(--λ-interactive) 40%, transparent);
+}
+.masthead button[aria-pressed="true"] {
+  border-color: var(--λ-data) !important;
+  color: var(--λ-data) !important;
+  box-shadow: 0 0 var(--λ-glow-sm) color-mix(in srgb, var(--λ-data) 40%, transparent);
+}
+
+/* ── Skyhook live metric (real-time numbers) use λ-data colour ───────── */
+.skyhook-live {
+  color: var(--λ-interactive) !important;
+  text-shadow: 0 0 12px color-mix(in srgb, var(--λ-interactive) 50%, transparent);
+}
+
+/* ── Tile sub-labels inherit λ-data ─────────────────────────────────── */
+.skyhook-label,
+.skyhook-sub {
+  color: color-mix(in srgb, var(--λ-data) 80%, white);
+}
+
+/* ── Alert / out-of-range readings glow λ-alert ─────────────────────── */
+.sig-warn,
+[data-state="warn"] {
+  color: var(--λ-alert);
+  text-shadow: 0 0 8px color-mix(in srgb, var(--λ-alert) 60%, transparent);
+}
+
+/* ── Annotation toggle button active state ───────────────────────────── */
+button[aria-pressed="true"][aria-label*="annotation"] {
+  border-color: var(--λ-data) !important;
+  color: var(--λ-data) !important;
+  box-shadow: 0 0 8px color-mix(in srgb, var(--λ-data) 40%, transparent);
+}
+
+/* ── Globe focus ring: λ-interactive when ISS focused ───────────────── */
+.globe-focused-ring,
+[data-iss-mode="FOCUSED"] .sun-globe-outer {
+  box-shadow:
+    0 0 var(--λ-glow-lg) color-mix(in srgb, var(--λ-interactive) 45%, transparent),
+    0 0 var(--λ-glow-sm) color-mix(in srgb, var(--λ-data) 30%, transparent);
+}
+
+/* ── Freight dock scene: cranes inherit λ-interactive for hot zones ──── */
+body[data-theme="freight"] .freight-dock-scene {
+  --crane-hot: var(--λ-interactive);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   HOTSPOT MAP FOCUS MODE
+   When user clicks ⊞ toggle: all overlays hidden, background
+   image shown at full opacity, tile becomes interactive map view
+   ══════════════════════════════════════════════════════════════════ */
+
+/* Universally make hotspot tile transparent to allow map underlay to bleed through cleanly */
+#hotspot-tile {
+  background-color: transparent !important;
+  backdrop-filter: blur(0.5px) !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Mangrove theme — background map removed directly from tile */
+body[data-theme="mangrove"] #hotspot-tile {
+  background-image: none !important;
+}
+
+/* Map focused: clear all overlays, make background fully visible */
+.hotspot-map-focus {
+  padding: 0 !important;
+  cursor: crosshair;
+}
+
+/* In map-focus: the tile's ::before and ::after overlays fade out */
+.hotspot-map-focus::before,
+.hotspot-map-focus::after {
+  opacity: 0 !important;
+}
+
+/* tile--indoor map background: more visible in mangrove theme */
+body[data-theme="mangrove"] .tile--indoor {
+  background-image: linear-gradient(
+    to top,
+    rgba(6, 78, 59, 0.55) 0%,
+    rgba(0, 120, 90, 0.25) 30%,
+    rgba(6, 78, 59, 0.10) 100%
+  ), url("/living_room.png") !important;
+  background-size: cover;
+  background-position: center bottom;
+}
+
+/* Map focus on hotspot — override background to show map at 100% */
+#hotspot-tile.hotspot-map-focus {
+  background-size: cover !important;
+  background-position: center center !important;
+  min-height: 480px;
+  border-color: var(--λ-interactive) !important;
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--λ-interactive) 40%, transparent),
+    0 20px 60px rgba(0,0,0,0.5) !important;
+  opacity: 1 !important;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+
+/* Map focus leaves the button visible above the blank canvas */
+#hotspot-tile.hotspot-map-focus > button[aria-label="Toggle map focus"] {
+  z-index: 100;
+  pointer-events: auto;
+}
+
+/* User Request: Make all tiles 80% opacity for better aesthetics */
+.tile {
+  background-color: rgba(0, 0, 0, 0.8) !important;
+  backdrop-filter: blur(12px);
+  border-radius: 12px;
+}
+
+/* Mangrove theme: enhance map visibility with higher transparency */
+body[data-theme="mangrove"] .tile {
+  background-color: rgba(0, 0, 0, 0.45) !important;
 }

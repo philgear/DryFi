@@ -1,3 +1,22 @@
-front-end/node_modules
+# Dependencies
+node_modules/
+front-end/node_modules/
+agent/node_modules/
+
+# Outputs
+dist/
+build/
+front-end/dist/
+agent/dist/
+
+# Env & Config
+.env
 front-end/.env
+agent/.env
 front-end/src/config.js
+
+# AI Agent/OS Artifacts
+.DS_Store
+Thumbs.db
+.gemini/
+.ai/

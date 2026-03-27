@@ -26,6 +26,15 @@
             ],
             "styles": [
               "src/styles.css"
+            ],
+            "allowedCommonJsDependencies": [
+              "long",
+              "earcut",
+              "pako",
+              "snappyjs",
+              "jszip",
+              "pbf",
+              "fast-xml-parser"
             ]
           },
           "configurations": {
@@ -38,8 +47,8 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kB",
-                  "maximumError": "1MB"
+                  "maximumWarning": "1500kB",
+                  "maximumError": "3MB"
                 },
                 {
                   "type": "anyComponentStyle",
