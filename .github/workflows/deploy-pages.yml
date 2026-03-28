@@ -42,12 +42,18 @@ jobs:
         run: npm ci
 
       - name: Build
-        run: npm run build -- --configuration production --base-href /DryFi/
+        run: npm run build -- --configuration production --base-href /DryFi/front-end/
+
+      - name: Prepare Artifact Directory
+        run: |
+          mkdir -p ../artifact_root/front-end
+          cp -R dist/front-end/browser/* ../artifact_root/front-end/
+          echo '<!DOCTYPE html><html lang="en"><head><meta http-equiv="refresh" content="0; url=front-end/" /><title>Redirecting...</title></head><body><p>Redirecting to <a href="front-end/">front-end/</a>...</p></body></html>' > ../artifact_root/index.html
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./front-end/dist/front-end/browser
+          path: ./artifact_root
 
   deploy:
     environment:
