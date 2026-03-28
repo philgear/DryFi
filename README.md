@@ -1,5 +1,8 @@
 # DryFi
 
+[![Live Demo](screenshot.png)](https://philgear.github.io/DryFi/front-end/)
+*Click above to view the Live Demo*
+
 DryFi is an IoT environmental monitoring dashboard displaying real-time indoor and outdoor metrics.
 
 ## Project Structure

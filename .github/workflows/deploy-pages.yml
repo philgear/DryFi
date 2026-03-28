@@ -42,8 +42,8 @@ jobs:
         id: auth
         uses: google-github-actions/auth@v2
         with:
-          workload_identity_provider: ${{ secrets[format('GCP_{0}', 'WORKLOAD_IDENTITY_PROVIDER')] }}
-          service_account: ${{ secrets[format('GCP_{0}', 'SERVICE_ACCOUNT')] }}
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
 
       - name: Get Secrets
         id: secrets
