@@ -649,7 +649,7 @@ export class App implements OnInit, OnDestroy {
   // Dynamic Thematic Background Interpolations
   albedoBg = computed(() => {
     const pct = Math.max(0, Math.min(100, this.albedo_val()));
-    return `var(--weave), linear-gradient(145deg, color-mix(in srgb, transparent ${pct}%, #1f1209), color-mix(in srgb, transparent ${pct}%, var(--klee-sienna))), url('/optimal_glacier.png')`;
+    return `var(--weave), linear-gradient(145deg, color-mix(in srgb, transparent ${pct}%, #1f1209), color-mix(in srgb, transparent ${pct}%, var(--klee-sienna))), url('optimal_glacier.png')`;
   });
 
   // ──────────────────────────────────────────────────────────────────────
@@ -912,13 +912,13 @@ export class App implements OnInit, OnDestroy {
 
   ndviBg = computed(() => {
     const pct = Math.max(0, Math.min(100, this.ndvi_val() * 100));
-    return `var(--weave), linear-gradient(145deg, color-mix(in srgb, transparent ${pct}%, #04101e), color-mix(in srgb, transparent ${pct}%, var(--klee-slate))), url('/optimal_mangrove.png')`;
+    return `var(--weave), linear-gradient(145deg, color-mix(in srgb, transparent ${pct}%, #04101e), color-mix(in srgb, transparent ${pct}%, var(--klee-slate))), url('optimal_mangrove.png')`;
   });
 
   carbonBg = computed(() => {
     const flux = this.carbon_val() || 50;
     const cleanPct = Math.max(0, Math.min(100, 100 - ((flux - 20) / 100) * 100)); // 20g = 100% clean, 120g = 0% clean
-    return `var(--weave), linear-gradient(145deg, color-mix(in srgb, transparent ${cleanPct}%, #2e1201), color-mix(in srgb, transparent ${cleanPct}%, var(--klee-amber))), url('/optimal_corridor.png')`;
+    return `var(--weave), linear-gradient(145deg, color-mix(in srgb, transparent ${cleanPct}%, #2e1201), color-mix(in srgb, transparent ${cleanPct}%, var(--klee-amber))), url('optimal_corridor.png')`;
   });
 
   // Native Spherical Astronomy translation of geocentric RA/Dec to Local Apparent Azimuth
