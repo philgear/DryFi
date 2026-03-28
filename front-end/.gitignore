@@ -68,3 +68,6 @@ _agent/
 .agent/
 _agents/
 agent/
+
+# Auto-created Environment Secrets
+src/environments/*.ts
