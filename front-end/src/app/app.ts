@@ -160,11 +160,11 @@ export class App implements OnInit, OnDestroy {
       title,
       matrix: { ...current }
     };
-    this.savedTasks.update(tasks => [newTask, ...tasks]);
+    this.savedTasks.update((tasks: SavedTask[]) => [newTask, ...tasks]);
   }
 
   deleteSavedTask(id: string) {
-    this.savedTasks.update(tasks => tasks.filter(t => t.id !== id));
+    this.savedTasks.update((tasks: SavedTask[]) => tasks.filter((t: SavedTask) => t.id !== id));
   }
 
   // Globe interactivity state
@@ -320,9 +320,9 @@ export class App implements OnInit, OnDestroy {
     { pY: 55, a1: -10, a2: 10, a3: -15 }
   ];
 
-  alpineHotspots       = computed(() => this.insightHotspots().filter(c => c.group === 'ALPINE'));
-  supplyChainHotspots  = computed(() => this.insightHotspots().filter(c => c.group === 'SUPPLY_CHAIN'));
-  mangroveHotspots     = computed(() => this.insightHotspots().filter(c => c.group === 'MANGROVE'));
+  alpineHotspots       = computed(() => this.insightHotspots().filter((c: any) => c.group === 'ALPINE'));
+  supplyChainHotspots  = computed(() => this.insightHotspots().filter((c: any) => c.group === 'SUPPLY_CHAIN'));
+  mangroveHotspots     = computed(() => this.insightHotspots().filter((c: any) => c.group === 'MANGROVE'));
 
   /** Active biome group tab in the unified SITE INTEL tile */
   activeGroup = signal<'ALPINE' | 'SUPPLY_CHAIN' | 'MANGROVE'>('ALPINE');
