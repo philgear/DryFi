@@ -38,6 +38,22 @@ jobs:
           cache: "npm"
           cache-dependency-path: front-end/package-lock.json
 
+      - name: Authenticate to Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Get Secrets
+        id: secrets
+        uses: google-github-actions/get-secretmanager-secrets@v2
+        with:
+          secrets: |-
+            GOOGLE_MAPS_API_KEY:philgear.dev/GOOGLE_MAPS_API_KEY
+            NASA_API_KEY:philgear.dev/NASA_API_KEY
+            OPEN_WEATHER_KEY:philgear.dev/OPEN_WEATHER_KEY
+
       - name: Install dependencies
         run: npm ci
 
