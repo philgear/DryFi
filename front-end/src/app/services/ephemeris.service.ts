@@ -73,7 +73,7 @@ export class EphemerisService {
           `&ANG_FORMAT='DEG'`;
 
         const targetUrl = `https://ssd.jpl.nasa.gov/api/horizons.api?${query}`;
-        const proxiedUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
+        const proxiedUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
         const res = await fetch(proxiedUrl);
         const data = await res.json();
 
