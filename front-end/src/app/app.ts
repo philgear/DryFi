@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed, OnDestroy, effect, inject } from '@angular/core';
+import { Component, OnInit, signal, computed, OnDestroy, effect, inject, NgZone, ChangeDetectionStrategy } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { WeatherService } from './services/weather.service';
 // @ts-ignore
@@ -132,12 +132,14 @@ export const SATELLITE_ORBITS: ConstellationNode[] = [
   standalone: true,
   imports: [CommonModule, GlobeComponent],
   templateUrl: './app.html',
-  styleUrl: './app.css'
+  styleUrl: './app.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class App implements OnInit, OnDestroy {
   aiService = inject(AiInsightsService);
   spaceWeather = inject(SpaceWeatherService);
   sanitizer = inject(DomSanitizer);
+  ngZone = inject(NgZone);
   readonly Math = Math;
   readonly constellations = SATELLITE_ORBITS;
   isSearching = signal(false);
@@ -1213,19 +1215,21 @@ export class App implements OnInit, OnDestroy {
   }
 
   private startGlobeAnimation() {
-    const tick = () => {
-      // Auto-spin if not hovered and not spinning
-      if (!this.globeHovered() && !this.isGlobeDragging) {
-        this.globeRotX.update((v: number) => v + this.autoSpinSpeed);
-        // Slowly return Y back to equator (0)
-        this.globeRotY.update((v: number) => {
-          if (Math.abs(v) < 0.1) return 0;
-          return v * 0.98;
-        });
-      }
-      this.animationFrameId = requestAnimationFrame(tick);
-    };
-    tick();
+    this.ngZone.runOutsideAngular(() => {
+      const tick = () => {
+        // Auto-spin if not hovered and not spinning
+        if (!this.globeHovered() && !this.isGlobeDragging) {
+          this.globeRotX.update((v: number) => v + this.autoSpinSpeed);
+          // Slowly return Y back to equator (0)
+          this.globeRotY.update((v: number) => {
+            if (Math.abs(v) < 0.1) return 0;
+            return v * 0.98;
+          });
+        }
+        this.animationFrameId = requestAnimationFrame(tick);
+      };
+      tick();
+    });
   }
 
   /** Format a Date as HH:MM in the browser's local timezone */
@@ -1367,25 +1371,27 @@ export class App implements OnInit, OnDestroy {
   }
 
   private _runThemeCanvas() {
-    const animate = () => {
-      this._canvasRaf = requestAnimationFrame(animate);
-      const theme = this.activeTheme();
-      const canvas = this._canvasEl;
-      if (!canvas) return;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
-      const W = canvas.width, H = canvas.height;
+    this.ngZone.runOutsideAngular(() => {
+      const animate = () => {
+        this._canvasRaf = requestAnimationFrame(animate);
+        const theme = this.activeTheme();
+        const canvas = this._canvasEl;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        const W = canvas.width, H = canvas.height;
 
-      // Show/hide canvas
-      canvas.style.opacity = theme === 'default' ? '0' : '0.75';
+        // Show/hide canvas
+        canvas.style.opacity = theme === 'default' ? '0' : '0.75';
 
-      ctx.clearRect(0, 0, W, H);
+        ctx.clearRect(0, 0, W, H);
 
-      if (theme === 'alpine') this._drawSnow(ctx, W, H);
-      else if (theme === 'freight') this._drawFreight(ctx, W, H);
-      else if (theme === 'mangrove') this._drawMangrove(ctx, W, H);
-    };
-    animate();
+        if (theme === 'alpine') this._drawSnow(ctx, W, H);
+        else if (theme === 'freight') this._drawFreight(ctx, W, H);
+        else if (theme === 'mangrove') this._drawMangrove(ctx, W, H);
+      };
+      animate();
+    });
   }
 
   // ── ALPINE: snowflakes ──────────────────────────────────────────────
