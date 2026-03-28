@@ -1279,7 +1279,7 @@ button.world-clock-btn:hover {
 
 /* Alpine — alpine_mountain.webp: snow peaks texture behind Aurora curtains */
 body[data-theme="alpine"]::before {
-  background-image: url('alpine_mountain.webp');
+  background-image: url('../public/alpine_mountain.webp');
   background-size: cover;
   background-position: center top;
   background-repeat: no-repeat;
@@ -1289,7 +1289,7 @@ body[data-theme="alpine"]::before {
 
 /* Freight — realistic_sun.webp: sodium floodlight / port sun wash */
 body[data-theme="freight"]::before {
-  background-image: url('realistic_sun.webp');
+  background-image: url('../public/realistic_sun.webp');
   background-size: 60% auto;
   background-position: 80% 20%;
   background-repeat: no-repeat;
@@ -1299,7 +1299,7 @@ body[data-theme="freight"]::before {
 
 /* Mangrove — mangroves.webp: bioluminescent canopy depth layer */
 body[data-theme="mangrove"]::before {
-  background-image: url('mangroves.webp');
+  background-image: url('../public/mangroves.webp');
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;
@@ -1325,17 +1325,17 @@ body[data-theme="mangrove"]::before {
   mix-blend-mode: soft-light;
 }
 body[data-theme="alpine"] .masthead::after {
-  background-image: url('alpine_mountain.webp');
+  background-image: url('../public/alpine_mountain.webp');
   opacity: 0.22;
 }
 body[data-theme="freight"] .masthead::after {
-  background-image: url('realistic_sun.webp');
+  background-image: url('../public/realistic_sun.webp');
   background-size: 120% auto;
   background-position: 60% 30%;
   opacity: 0.28;
 }
 body[data-theme="mangrove"] .masthead::after {
-  background-image: url('mangroves.webp');
+  background-image: url('../public/mangroves.webp');
   opacity: 0.20;
 }
 

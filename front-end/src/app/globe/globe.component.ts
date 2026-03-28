@@ -17,6 +17,7 @@ import { environment } from '../../environments/environment';
 export class GlobeComponent implements OnInit, OnDestroy {
   @ViewChild('deckContainer', { static: true }) deckContainer!: ElementRef;
   
+  // @ts-ignore
   private deck!: Deck<any>;
 
   // React to target location changes (lat, lon)
@@ -46,6 +47,7 @@ export class GlobeComponent implements OnInit, OnDestroy {
     const GOOGLE_API_KEY = environment.GOOGLE_MAPS_API_KEY;
     const TILESET_URL = `https://tile.googleapis.com/v1/3dtiles/root.json?key=${GOOGLE_API_KEY}`;
 
+    // @ts-ignore
     const tile3dLayer = new Tile3DLayer({
       id: 'google-3d-tiles',
       data: TILESET_URL,
@@ -78,17 +80,18 @@ export class GlobeComponent implements OnInit, OnDestroy {
         },
         '3d-tiles': {}
       },
-      onTileError: (error) => console.error('Error loading Google 3D Tile:', error),
+      onTileError: (error: any) => console.error('Error loading Google 3D Tile:', error),
       maximumScreenSpaceError: 4 // Lower value = much higher texture and mesh quality
     });
 
+    // @ts-ignore
     const backgroundEarthLayer = new TileLayer({
       id: 'earth-satellite-base',
       data: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
       minZoom: 0,
       maxZoom: 19,
       tileSize: 256,
-      renderSubLayers: props => {
+      renderSubLayers: (props: any) => {
         const { boundingBox } = props.tile;
 
         return new BitmapLayer(props, {
@@ -119,7 +122,7 @@ export class GlobeComponent implements OnInit, OnDestroy {
         const { around: _dropped, ...safeState } = viewState;
         this.deck.setProps({ initialViewState: safeState });
       },
-      onClick: (info) => {
+      onClick: (info: any) => {
         if (info && info.coordinate) {
           // Deck.gl coordinates are [longitude, latitude]
           this.locationSelected.emit({
