@@ -72,7 +72,9 @@ export class EphemerisService {
           `&CSV_FORMAT='YES'` +
           `&ANG_FORMAT='DEG'`;
 
-        const res = await fetch(`https://ssd.jpl.nasa.gov/api/horizons.api?${query}`);
+        const targetUrl = `https://ssd.jpl.nasa.gov/api/horizons.api?${query}`;
+        const proxiedUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
+        const res = await fetch(proxiedUrl);
         const data = await res.json();
 
         if (data?.result) {
